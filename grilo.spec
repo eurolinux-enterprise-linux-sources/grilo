@@ -3,7 +3,7 @@
 
 Name:           grilo
 Version:        0.2.6
-Release:        3%{?dist}
+Release:        5%{?dist}
 Summary:        Content discovery framework
 
 Group:          Applications/Multimedia
@@ -113,6 +113,12 @@ install -m 0644 doc/grilo/html/* $RPM_BUILD_ROOT%{_datadir}/gtk-doc/html/grilo/
 %{_datadir}/vala/vapi/*
 
 %changelog
+* Fri Jan 24 2014 Daniel Mach <dmach@redhat.com> - 0.2.6-5
+- Mass rebuild 2014-01-24
+
+* Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 0.2.6-4
+- Mass rebuild 2013-12-27
+
 * Thu Nov 07 2013 Bastien Nocera <bnocera@redhat.com> 0.2.6-3
 - Work-around multi-lib differences in gtk-doc docs
 Resolves: #884020
