@@ -55,7 +55,7 @@ GRL_LOG_DOMAIN_STATIC(test_ui_log_domain);
 
 /* ----- Youtube Config tokens ---- */
 
-#define YOUTUBE_KEY   "AI39si4EfscPllSfUy1IwexMf__kntTL_G5dfSr2iUEVN45RHGq92Aq0lX25OlnOkG6KTN-4soVAkAf67fWYXuHfVADZYr7S1A"
+#define YOUTUBE_KEY   "AIzaSyDLRGH1fK0-hIlkuVOgi96FLeskI_BDj2k"
 
 /* ----- Vimeo Config tokens ---- */
 
@@ -65,6 +65,14 @@ GRL_LOG_DOMAIN_STATIC(test_ui_log_domain);
 /* ----- TMDb Config tokens ---- */
 
 #define TMDB_KEY "719b9b296835b04cd919c4bf5220828a"
+
+/* ----- The TVDB key ---- */
+
+#define THETVDB_KEY "3F476CEF2FBD0FB0"
+
+/* ----- AcoustID key ---- */
+
+#define ACOUSTID_KEY "4ihkDsH37X"
 
 /* ----- Other ----- */
 
@@ -81,7 +89,7 @@ GRL_LOG_DOMAIN_STATIC(test_ui_log_domain);
 #define METADATA_MIN_WIDTH  320
 #define METADATA_MIN_HEIGHT 400
 
-#define BROWSE_CHUNK_SIZE   50
+#define BROWSE_CHUNK_SIZE   75
 #define BROWSE_MAX_COUNT    200
 
 enum {
@@ -212,7 +220,7 @@ static void authorize_flickr_cb (GtkAction *action);
 #endif
 
 static void shutdown_plugins_cb (GtkAction *action);
-static void shutdown_plugins (gboolean ui_active);
+static void shutdown_plugins (void);
 
 static void load_all_plugins_cb (GtkAction *action);
 static void load_all_plugins (void);
@@ -227,19 +235,19 @@ static void content_changed_cb (GrlSource *source,
 static GtkActionEntry entries[] = {
   { "FileMenuAction", NULL, "_File" },
 #ifdef HAVE_OAUTH
-  { "AuthorizeFlickrAction", GTK_STOCK_CONNECT, "_Authorize Flickr", NULL,
+  { "AuthorizeFlickrAction", NULL, "_Authorize Flickr", NULL,
     "AuthorizeFlickr", G_CALLBACK (authorize_flickr_cb) },
 #endif
-  { "ShutdownPluginsAction", GTK_STOCK_REFRESH, "_Shutdown Plugins", NULL,
+  { "ShutdownPluginsAction", NULL, "_Shutdown Plugins", NULL,
     "ShutdownPlugins", G_CALLBACK (shutdown_plugins_cb) },
-  { "LoadAllPluginsAction", GTK_STOCK_REFRESH, "_Load All Plugins", NULL,
+  { "LoadAllPluginsAction", NULL, "_Load All Plugins", NULL,
     "LoadAllPlugins", G_CALLBACK (load_all_plugins_cb) },
-  { "QuitAction", GTK_STOCK_QUIT, "_Quit", "<control>Q",
+  { "QuitAction", NULL, "_Quit", "<control>Q",
     "Quit", G_CALLBACK (quit_cb) }
 };
 
 static GtkToggleActionEntry toggle_entries[] = {
-  { "ChangesNotificationAction", GTK_STOCK_FIND, "_Changes notification", NULL,
+  { "ChangesNotificationAction", NULL, "_Changes notification", NULL,
     "ChangesNotification", G_CALLBACK (changes_notification_cb), FALSE }
 };
 
@@ -260,7 +268,7 @@ authorize_flickr_cb (GtkAction *action)
 static void
 shutdown_plugins_cb (GtkAction *action)
 {
-  shutdown_plugins (TRUE);
+  shutdown_plugins ();
 }
 
 static void
@@ -307,7 +315,7 @@ create_browser_model (void)
 					     G_TYPE_OBJECT,     /* Content */
 					     G_TYPE_INT,        /* Type */
 					     G_TYPE_STRING,     /* Name */
-					     GDK_TYPE_PIXBUF)); /* Icon */
+					     G_TYPE_ICON));     /* Icon */
 }
 
 static GtkTreeModel *
@@ -334,39 +342,19 @@ create_query_combo_model (void)
 					     G_TYPE_OBJECT));   /* source */
 }
 
-static GdkPixbuf *
-load_icon (const gchar *icon_name)
-{
-  GdkScreen *screen;
-  GtkIconTheme *theme;
-  GdkPixbuf *pixbuf;
-  GError *error = NULL;
-
-  screen = gdk_screen_get_default ();
-  theme = gtk_icon_theme_get_for_screen (screen);
-  pixbuf = gtk_icon_theme_load_icon (theme, icon_name, 22, 22, &error);
-
-  if (pixbuf == NULL) {
-    GRL_WARNING ("Failed to load icon %s: %s", icon_name,  error->message);
-    g_error_free (error);
-  }
-
-  return pixbuf;
-}
-
-static GdkPixbuf *
+static GIcon *
 get_icon_for_media (GrlMedia *media)
 {
-  if (GRL_IS_MEDIA_BOX (media)) {
-    return load_icon (GTK_STOCK_DIRECTORY);
-  } else if (GRL_IS_MEDIA_VIDEO (media)) {
-    return load_icon ("gnome-mime-video");
-  } else if (GRL_IS_MEDIA_AUDIO (media)) {
-    return load_icon ("gnome-mime-audio");
-  } else if (GRL_IS_MEDIA_IMAGE (media)) {
-    return load_icon ("gnome-mime-image");
+  if (grl_media_is_container (media)) {
+    return g_themed_icon_new ("folder");
+  } else if (grl_media_is_video (media)) {
+    return g_themed_icon_new ("gnome-mime-video");
+  } else if (grl_media_is_audio (media)) {
+    return g_themed_icon_new ("gnome-mime-audio");
+  } else if (grl_media_is_image (media)) {
+    return g_themed_icon_new ("gnome-mime-image");
   } else {
-    return load_icon (GTK_STOCK_FILE);
+    return g_themed_icon_new ("text-x-generic");
   }
 }
 
@@ -433,10 +421,8 @@ browse_history_pop (GrlSource **source, GrlMedia **media)
 static void
 set_cur_browse (GrlSource *source, GrlMedia *media)
 {
-  if (ui_state->cur_source)
-    g_object_unref (ui_state->cur_source);
-  if (ui_state->cur_container)
-    g_object_unref (ui_state->cur_container);
+  g_clear_object (&ui_state->cur_source);
+  g_clear_object (&ui_state->cur_container);
 
   if (source)
     g_object_ref (source);
@@ -450,10 +436,8 @@ set_cur_browse (GrlSource *source, GrlMedia *media)
 static void
 set_cur_resolve (GrlSource *source, GrlMedia *media)
 {
-  if (ui_state->cur_md_source)
-    g_object_unref (ui_state->cur_md_source);
-  if (ui_state->cur_md_media)
-    g_object_unref (ui_state->cur_md_media);
+  g_clear_object (&ui_state->cur_md_source);
+  g_clear_object (&ui_state->cur_md_media);
 
   if (source)
     g_object_ref (source);
@@ -467,6 +451,9 @@ set_cur_resolve (GrlSource *source, GrlMedia *media)
 static void
 clear_panes (void)
 {
+  /* Prevent undesired cursor-changed signal calls */
+  gtk_tree_view_set_model (GTK_TREE_VIEW (view->browser),
+                           NULL);
   if (view->browser_model) {
     gtk_list_store_clear (GTK_LIST_STORE (view->browser_model));
     g_object_unref (view->browser_model);
@@ -633,9 +620,9 @@ resolve_cb (GrlSource *source,
        when the treeview is cleared */
 
     /* Set/unset show button */
-    if ((GRL_IS_MEDIA_AUDIO (media) ||
-         GRL_IS_MEDIA_VIDEO (media) ||
-         GRL_IS_MEDIA_IMAGE (media)) &&
+    if ((grl_media_is_audio (media) ||
+         grl_media_is_video (media) ||
+         grl_media_is_image (media)) &&
         (ui_state->last_url = grl_media_get_url (media))) {
       gtk_widget_set_sensitive (view->show_btn, TRUE);
     } else {
@@ -681,7 +668,7 @@ browse_search_query_cb (GrlSource *source,
   gint type;
   const gchar *name;
   GtkTreeIter iter;
-  GdkPixbuf *icon;
+  GIcon *icon;
   OperationState *state = (OperationState *) user_data;
   guint next_op_id;
 
@@ -700,9 +687,9 @@ browse_search_query_cb (GrlSource *source,
   if (media) {
     icon = get_icon_for_media (media);
     name = grl_media_get_title (media);
-    if (GRL_IS_MEDIA_BOX (media)) {
+    if (grl_media_is_container (media)) {
       gint childcount =
-        grl_media_box_get_childcount (GRL_MEDIA_BOX (media));
+        grl_media_get_childcount (media);
       type = OBJECT_TYPE_CONTAINER;
       if (childcount != GRL_METADATA_KEY_CHILDCOUNT_UNKNOWN) {
 	name = g_strdup_printf ("%s (%d)", name, childcount);
@@ -724,9 +711,7 @@ browse_search_query_cb (GrlSource *source,
 			-1);
 
     g_object_unref (media);
-    if (icon) {
-      g_object_unref (icon);
-    }
+    g_clear_object (&icon);
   }
 
   if (remaining == 0) {
@@ -789,9 +774,11 @@ browse_search_query_cb (GrlSource *source,
 	    g_object_unref (options);
 	    goto operation_finished;
 	    break;
+	  default:
+	    g_assert_not_reached ();
 	}
 	g_object_unref (options);
-   g_object_unref (supported_options);
+	g_object_unref (supported_options);
 	operation_started (source, next_op_id, FALSE);
       } else {
 	/* We browsed all requested elements  */
@@ -887,24 +874,150 @@ browser_activated_cb (GtkTreeView *tree_view,
   browse_history_push (ui_state->cur_source, ui_state->cur_container);
   browse (source, container);
 
+  g_clear_object (&source);
+  g_clear_object (&content);
+}
+
+static void
+add_source_metadata (GtkTreeModel *model,
+		     const char *key,
+		     const char *value)
+{
+  GtkTreeIter iter;
+
+  gtk_list_store_append (GTK_LIST_STORE (model), &iter);
+  gtk_list_store_set (GTK_LIST_STORE (model),
+                      &iter,
+                      METADATA_MODEL_NAME, key,
+                      METADATA_MODEL_VALUE, value,
+                      -1);
+  GRL_DEBUG ("  %s: %s", key, value);
+
+}
+
+static char *
+supported_media_to_str (GrlMediaType type)
+{
+  GString *s;
+
+  if (type == GRL_SUPPORTED_MEDIA_NONE)
+    return g_strdup ("None");
+  if (type == GRL_SUPPORTED_MEDIA_ALL)
+    return g_strdup ("All");
+
+  s = g_string_new (NULL);
+  if (GRL_SUPPORTED_MEDIA_AUDIO & type)
+    g_string_append (s, "audio, ");
+  if (GRL_SUPPORTED_MEDIA_VIDEO & type)
+    g_string_append (s, "video, ");
+  if (GRL_SUPPORTED_MEDIA_IMAGE & type)
+    g_string_append (s, "image, ");
+
+  g_string_truncate (s, s->len - 2);
+  return g_string_free (s, FALSE);
+}
+
+static char *
+tags_to_str (char **tags)
+{
+  GString *s;
+  guint i;
+
+  if (tags == NULL)
+    return g_strdup ("");
+
+  s = g_string_new (NULL);
+
+  for (i = 0; tags[i] != NULL; i++) {
+    g_string_append (s, tags[i]);
+    g_string_append (s, ", ");
+  }
+
+  if (i > 0)
+    g_string_truncate (s, s->len - 2);
+  return g_string_free (s, FALSE);
+}
+
+static void
+populate_source_metadata (GrlSource *source)
+{
+  if (view->metadata_model) {
+    gtk_list_store_clear (GTK_LIST_STORE (view->metadata_model));
+    g_object_unref (view->metadata_model);
+  }
+  view->metadata_model = create_resolve_model ();
+  gtk_tree_view_set_model (GTK_TREE_VIEW (view->metadata),
+			   view->metadata_model);
+
   if (source) {
-    g_object_unref (source);
+    const char *str_props[] = {
+      "source-desc",
+      "source-id",
+      "source-name"
+    };
+    guint i;
+    char *str;
+    guint auto_split_threshold;
+    int rank;
+    GrlSupportedMedia supported_media;
+    GIcon *icon;
+    char **tags;
+
+    for (i = 0; i < G_N_ELEMENTS (str_props); i++) {
+      g_object_get (G_OBJECT (source), str_props[i], &str, NULL);
+      add_source_metadata (view->metadata_model, str_props[i], str);
+      g_free (str);
+    }
+
+    g_object_get (G_OBJECT (source),
+                  "auto-split-threshold", &auto_split_threshold,
+                  "rank", &rank,
+                  "supported-media", &supported_media,
+                  "source-icon", &icon,
+                  "source-tags", &tags,
+                  NULL);
+
+    str = g_strdup_printf ("%i", auto_split_threshold);
+    add_source_metadata (view->metadata_model, "auto-split-threshold", str);
+    g_free (str);
+
+    str = g_strdup_printf ("%d", rank);
+    add_source_metadata (view->metadata_model, "rank", str);
+    g_free (str);
+
+    str = supported_media_to_str (supported_media);
+    add_source_metadata (view->metadata_model, "supported-media", str);
+    g_free (str);
+
+    if (icon) {
+      str = g_icon_to_string (icon);
+      add_source_metadata (view->metadata_model, "source-icon", str);
+      g_free (str);
+      g_object_unref (icon);
+    }
+
+    str = tags_to_str (tags);
+    add_source_metadata (view->metadata_model, "source-tags", str);
+    g_free (str);
+    g_strfreev (tags);
   }
-  if (content) {
-    g_object_unref (content);
-  }
+
+  gtk_widget_set_sensitive (view->show_btn, FALSE);
+  ui_state->last_url = NULL;
 }
 
 static void
 resolve (GrlSource *source, GrlMedia *media)
 {
-  if (source) {
+  if (source && media) {
     grl_source_resolve (source,
                         media,
                         all_keys (),
                         default_resolve_options,
                         resolve_cb,
                         NULL);
+  } else {
+    populate_source_metadata (source);
   }
 }
 
@@ -939,7 +1052,7 @@ browser_row_selected_cb (GtkTreeView *tree_view,
       (grl_source_supported_operations (GRL_SOURCE (source)) &
        GRL_OP_STORE)) {
     gtk_widget_set_sensitive (view->store_btn, TRUE);
-  } else if (content && GRL_IS_MEDIA_BOX (content) &&
+  } else if (content && grl_media_is_container (content) &&
 	     grl_source_supported_operations (GRL_SOURCE (source)) &
 	     GRL_OP_STORE_PARENT) {
     gtk_widget_set_sensitive (view->store_btn, TRUE);
@@ -957,8 +1070,7 @@ browser_row_selected_cb (GtkTreeView *tree_view,
   }
 
   g_object_unref (source);
-  if (content)
-    g_object_unref (content);
+  g_clear_object (&content);
 }
 
 static void
@@ -971,7 +1083,7 @@ show_btn_clicked_cb (GtkButton *btn, gpointer user_data)
   if (ui_state->last_url) {
     GRL_DEBUG ("playing: %s", ui_state->last_url);
     uri_list = g_list_append (uri_list, (gpointer) ui_state->last_url);
-    if (GRL_IS_MEDIA_IMAGE (ui_state->cur_md_media)) {
+    if (grl_media_is_image (ui_state->cur_md_media)) {
       app = launchers->eog;
     } else {
       /* Content from apple-trailers should be opened with mplayer, as they
@@ -992,8 +1104,7 @@ show_btn_clicked_cb (GtkButton *btn, gpointer user_data)
       GRL_WARNING ("Cannot use '%s' to show '%s'; using default application",
                    g_app_info_get_name (app),
                    ui_state->last_url);
-      g_error_free (error);
-      error = NULL;
+      g_clear_error (&error);
       g_app_info_launch_default_for_uri (ui_state->last_url, NULL, &error);
       if (error) {
         GRL_WARNING ("Cannot use default application to show '%s'. "
@@ -1021,10 +1132,8 @@ back_btn_clicked_cb (GtkButton *btn, gpointer user_data)
   browse_history_pop (&prev_source, &prev_container);
   browse (prev_source, prev_container);
 
-  if (prev_source)
-    g_object_unref (prev_source);
-  if (prev_container)
-    g_object_unref (prev_container);
+  g_clear_object (&prev_source);
+  g_clear_object (&prev_container);
 }
 
 static void
@@ -1064,8 +1173,8 @@ store_btn_clicked_cb (GtkButton *btn, gpointer user_data)
 				 GTK_WINDOW (view->window),
 				 GTK_DIALOG_MODAL |
 				 GTK_DIALOG_DESTROY_WITH_PARENT,
-				 GTK_STOCK_OK, GTK_RESPONSE_OK,
-				 GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+				 "Store", GTK_RESPONSE_OK,
+				 "Cancel", GTK_RESPONSE_CANCEL,
 				 NULL);
   GtkWidget *ca = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
   GtkWidget *box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
@@ -1094,7 +1203,7 @@ store_btn_clicked_cb (GtkButton *btn, gpointer user_data)
     GrlMedia *media;
     const gchar *url = gtk_entry_get_text (GTK_ENTRY (e2));
     if (!url || !url[0]) {
-      media = grl_media_box_new ();
+      media = grl_media_container_new ();
     } else {
       media = grl_media_new ();
       grl_media_set_url (media, url);
@@ -1102,7 +1211,7 @@ store_btn_clicked_cb (GtkButton *btn, gpointer user_data)
     grl_media_set_title (media, gtk_entry_get_text (GTK_ENTRY (e1)));
     grl_media_set_description (media,
                                     gtk_entry_get_text (GTK_ENTRY (e3)));
-    grl_source_store (source, GRL_MEDIA_BOX (container),
+    grl_source_store (source, container,
                       media, GRL_WRITE_FULL, store_cb, NULL);
   }
 
@@ -1156,9 +1265,8 @@ remove_cb (GrlSource *source,
     GRL_WARNING ("Error removing media: %s", error->message);
   } else {
     GRL_DEBUG ("Media removed");
+    remove_item_from_view (source, media);
   }
-
-  remove_item_from_view (source, media);
 }
 
 static void
@@ -1179,12 +1287,8 @@ remove_btn_clicked_cb (GtkButton *btn, gpointer user_data)
 
   grl_source_remove (source, media, remove_cb, NULL);
 
-  if (source) {
-    g_object_unref (source);
-  }
-  if (media) {
-    g_object_unref (media);
-  }
+  g_clear_object (&source);
+  g_clear_object (&media);
 }
 
 static void
@@ -1255,9 +1359,7 @@ search_btn_clicked_cb (GtkButton *btn, gpointer user_data)
       search (source, text);
     }
 
-    if (source) {
-      g_object_unref (source);
-    }
+    g_clear_object (&source);
   }
 }
 
@@ -1298,9 +1400,7 @@ query_btn_clicked_cb (GtkButton *btn, gpointer user_data)
     text = gtk_entry_get_text (GTK_ENTRY (view->query_text));
     query (source, text);
 
-    if (source) {
-      g_object_unref (source);
-    }
+    g_clear_object (&source);
   }
 }
 
@@ -1555,9 +1655,9 @@ authorize_flickr (void)
   gtk_box_pack_start (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog))), label, TRUE, TRUE, 0);
   gtk_box_pack_start (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog))), input, TRUE, TRUE, 0);
 
-  ok_button = gtk_dialog_add_button (GTK_DIALOG (dialog), GTK_STOCK_OK, GTK_RESPONSE_OK);
+  ok_button = gtk_dialog_add_button (GTK_DIALOG (dialog), "Authorize", GTK_RESPONSE_OK);
   gtk_widget_set_sensitive (ok_button, FALSE);
-  gtk_dialog_add_button (GTK_DIALOG (dialog), GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL);
+  gtk_dialog_add_button (GTK_DIALOG (dialog), "Cancel", GTK_RESPONSE_CANCEL);
 
   g_signal_connect (G_OBJECT (label),
                     "activate-link",
@@ -1675,13 +1775,26 @@ set_tmdb_config (void)
 }
 
 static void
-set_local_config (void)
+set_thetvdb_config (void)
 {
   GrlConfig *config;
   GrlRegistry *registry;
 
-  config = grl_config_new ("grl-local-metadata", NULL);
-  grl_config_set_boolean (config, "guess-video", TRUE);
+  config = grl_config_new ("grl-thetvdb", NULL);
+  grl_config_set_api_key (config, THETVDB_KEY);
+
+  registry = grl_registry_get_default ();
+  grl_registry_add_config (registry, config, NULL);
+}
+
+static void
+set_acoustid_config (void)
+{
+  GrlConfig *config;
+  GrlRegistry *registry;
+
+  config = grl_config_new ("grl-acoustid", NULL);
+  grl_config_set_api_key (config, ACOUSTID_KEY);
 
   registry = grl_registry_get_default ();
   grl_registry_add_config (registry, config, NULL);
@@ -1698,6 +1811,7 @@ set_filesystem_config (void)
 
   config2 = grl_config_new ("grl-filesystem", NULL);
   grl_config_set_string (config2, "base-uri", "file:///");
+  grl_config_set_boolean (config2, "handle-pls", TRUE);
 
   registry = grl_registry_get_default ();
   grl_registry_add_config (registry, config1, NULL);
@@ -1727,12 +1841,22 @@ static void
 options_setup (void)
 {
   default_options = grl_operation_options_new (NULL);
-  grl_operation_options_set_flags (default_options, BROWSE_FLAGS);
+  grl_operation_options_set_resolution_flags (default_options, BROWSE_FLAGS);
   grl_operation_options_set_skip (default_options, 0);
   grl_operation_options_set_count (default_options, BROWSE_CHUNK_SIZE);
 
   default_resolve_options = grl_operation_options_new (NULL);
-  grl_operation_options_set_flags (default_resolve_options, RESOLVE_FLAGS);
+  grl_operation_options_set_resolution_flags (default_resolve_options, RESOLVE_FLAGS);
+}
+
+static gboolean
+delete_event_cb (GtkWidget *widget,
+		 GdkEvent  *event,
+		 gpointer   user_data)
+{
+  gtk_widget_hide (widget);
+  gtk_main_quit ();
+  return TRUE;
 }
 
 static void
@@ -1745,8 +1869,8 @@ ui_setup (void)
   view->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title (GTK_WINDOW (view->window), WINDOW_TITLE);
   gtk_window_resize (GTK_WINDOW (view->window), 600, 400);
-  g_signal_connect (G_OBJECT (view->window), "destroy",
-                    G_CALLBACK (gtk_main_quit), NULL);
+  g_signal_connect (G_OBJECT (view->window), "delete-event",
+                    G_CALLBACK (delete_event_cb), NULL);
 
   GtkActionGroup *actions = gtk_action_group_new ("actions");
   gtk_action_group_add_actions (actions, entries, G_N_ELEMENTS (entries), NULL);
@@ -1846,16 +1970,16 @@ ui_setup (void)
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   view->back_btn = gtk_button_new ();
   gtk_button_set_image (GTK_BUTTON (view->back_btn),
-			gtk_image_new_from_stock (GTK_STOCK_GO_BACK,
-						  GTK_ICON_SIZE_BUTTON));
+			gtk_image_new_from_icon_name ("gtk-go-back",
+						      GTK_ICON_SIZE_BUTTON));
   view->store_btn = gtk_button_new ();
   gtk_button_set_image (GTK_BUTTON (view->store_btn),
-			gtk_image_new_from_stock (GTK_STOCK_ADD,
-						  GTK_ICON_SIZE_BUTTON));
+			gtk_image_new_from_icon_name ("list-add",
+						      GTK_ICON_SIZE_BUTTON));
   view->remove_btn = gtk_button_new ();
   gtk_button_set_image (GTK_BUTTON (view->remove_btn),
-			gtk_image_new_from_stock (GTK_STOCK_REMOVE,
-						  GTK_ICON_SIZE_BUTTON));
+			gtk_image_new_from_icon_name ("list-remove",
+						      GTK_ICON_SIZE_BUTTON));
 
   gtk_container_add_with_properties (GTK_CONTAINER (box),
 				     view->back_btn,
@@ -1888,7 +2012,7 @@ ui_setup (void)
 
   gint i;
   GtkCellRenderer *col_renders[2];
-  gchar *col_attributes[] = {"pixbuf", "text"};
+  gchar *col_attributes[] = {"gicon", "text"};
   gint col_model[2] = { BROWSER_MODEL_ICON, BROWSER_MODEL_NAME};
   col_renders[0] = gtk_cell_renderer_pixbuf_new ();
   col_renders[1] = gtk_cell_renderer_text_new ();
@@ -1999,10 +2123,11 @@ show_browsable_sources ()
       sources_iter = g_list_next (sources_iter)) {
     GrlSource *source;
     const gchar *name;
-    GdkPixbuf *icon;
+    GIcon *icon;
 
     source = GRL_SOURCE (sources_iter->data);
-    icon = load_icon (GTK_STOCK_DIRECTORY);
+
+    icon = g_themed_icon_new ("folder");
     name = grl_source_get_name (source);
     GRL_DEBUG ("Loaded source: '%s'", name);
     gtk_list_store_append (GTK_LIST_STORE (view->browser_model), &iter);
@@ -2014,9 +2139,7 @@ show_browsable_sources ()
 			BROWSER_MODEL_NAME, name,
 			BROWSER_MODEL_ICON, icon,
 			-1);
-    if (icon) {
-      g_object_unref (icon);
-    }
+    g_object_unref (icon);
   }
   g_list_free (sources);
 }
@@ -2024,16 +2147,7 @@ show_browsable_sources ()
 static void
 free_stack (GList **stack)
 {
-  GList *iter;
-  iter = *stack;
-  while (iter) {
-    if (iter->data) {
-      g_object_unref (iter->data);
-    }
-    iter = g_list_next (iter);
-  }
-  g_list_free (*stack);
-  *stack = NULL;
+  g_list_free_full (*stack, g_object_unref);
 }
 
 static void
@@ -2097,7 +2211,7 @@ content_changed_cb (GrlSource *source,
   for (i = 0; i < changed_medias->len; i++) {
     media = g_ptr_array_index (changed_medias, i);
     media_id = grl_media_get_id (media);
-    if (GRL_IS_MEDIA_BOX (media)) {
+    if (grl_media_is_container (media)) {
       message =
         g_strdup_printf ("%s: container '%s' has %s%s",
                          grl_source_get_name (source),
@@ -2121,6 +2235,24 @@ content_changed_cb (GrlSource *source,
                            GUINT_TO_POINTER (id));
     g_free (message);
   }
+}
+
+static void
+metadata_key_added_cb (GrlRegistry *registry,
+                       const gchar *key,
+                       gpointer user_data)
+{
+  gchar *message;
+  guint id;
+
+  message = g_strdup_printf ("New metadata key '%s' has been added", key);
+  id = gtk_statusbar_push (GTK_STATUSBAR (view->statusbar),
+                           view->statusbar_context_id,
+                           message);
+  g_timeout_add_seconds (NOTIFICATION_TIMEOUT,
+                         remove_notification,
+                         GUINT_TO_POINTER (id));
+  g_free (message);
 }
 
 static void
@@ -2186,13 +2318,15 @@ load_plugins (void)
 		    G_CALLBACK (source_added_cb), NULL);
   g_signal_connect (registry, "source-removed",
 		    G_CALLBACK (source_removed_cb), NULL);
-  if (!grl_registry_load_all_plugins (registry, NULL)) {
+  g_signal_connect (registry, "metadata-key-added",
+                    G_CALLBACK (metadata_key_added_cb), NULL);
+  if (!grl_registry_load_all_plugins (registry, TRUE, NULL)) {
     g_error ("Failed to load plugins.");
   }
 }
 
 static void
-shutdown_plugins (gboolean ui_active)
+shutdown_plugins (void)
 {
   GList *plugins;
   GList *plugin_iter;
@@ -2201,10 +2335,7 @@ shutdown_plugins (gboolean ui_active)
   /* Cancel previous operation, if any */
   cancel_current_operation ();
 
-  /* Let's make sure we don't have references to stuff
-     we are about to shut down */
-  if (ui_active)
-    clear_ui ();
+  clear_ui ();
 
   registry = grl_registry_get_default ();
 
@@ -2228,11 +2359,9 @@ shutdown_plugins (gboolean ui_active)
 				     NULL);
 
   /* Reload UI */
-  if (ui_active) {
-    reset_ui ();
-    search_combo_setup ();
-    query_combo_setup ();
-  }
+  reset_ui ();
+  search_combo_setup ();
+  query_combo_setup ();
 }
 
 static void
@@ -2242,7 +2371,7 @@ load_all_plugins ()
 
   registry = grl_registry_get_default ();
 
-  grl_registry_load_all_plugins (registry, NULL);
+  grl_registry_load_all_plugins (registry, TRUE, NULL);
 }
 
 static void
@@ -2253,7 +2382,8 @@ configure_plugins (void)
   set_youtube_config ();
   set_vimeo_config ();
   set_tmdb_config ();
-  set_local_config ();
+  set_thetvdb_config ();
+  set_acoustid_config ();
   set_filesystem_config ();
 }
 
@@ -2269,6 +2399,7 @@ main (int argc, gchar *argv[])
   configure_plugins ();
   load_plugins ();
   gtk_main ();
-  shutdown_plugins (FALSE);
+  clear_ui ();
+  grl_deinit ();
   return 0;
 }

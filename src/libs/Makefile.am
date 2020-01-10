@@ -11,10 +11,10 @@ if BUILD_GRILO_NET
 SUBDIRS += net
 endif
 
-DIST_SUBDIRS = net
+if BUILD_GRILO_PLS
+SUBDIRS += pls
+endif
 
-MAINTAINERCLEANFILES = \
-	*.in \
-	*~
+DIST_SUBDIRS = net pls
 
-DISTCLEANFILES =$(MAINTAINERCLEANFILES)
+-include $(top_srcdir)/git.mk

@@ -29,13 +29,13 @@
 
 #include <grl-metadata-key.h>
 #include <grl-media.h>
-#include <grl-media-box.h>
 #include <grl-definitions.h>
 #include <grl-plugin.h>
 #include <grl-operation-options.h>
 
 #include <glib.h>
 #include <glib-object.h>
+#include <gio/gio.h>
 
 /* Macros */
 
@@ -91,7 +91,7 @@ struct _GrlSource {
  * @GRL_OP_REMOVE: Remove content from a service.
  * @GRL_OP_MEDIA_FROM_URI: Create a #GrlMedia instance from an URI
  * representing a media resource.
- * @GRL_OP_NOTIFY_CHANGE: Notify about changes in the #GrlMediaSource.
+ * @GRL_OP_NOTIFY_CHANGE: Notify about changes in the #GrlSource.
  *
  * Bitwise flags which reflect the kind of operations that a
  * #GrlSource supports.
@@ -110,10 +110,26 @@ typedef enum {
   GRL_OP_NOTIFY_CHANGE   = 1 << 9
 } GrlSupportedOps;
 
+ /**
+ * GrlSupportedMedia:
+ * @GRL_SUPPORTED_MEDIA_NONE: no media
+ * @GRL_SUPPORTED_MEDIA_AUDIO: audio media
+ * @GRL_SUPPORTED_MEDIA_VIDEO: video media
+ * @GRL_SUPPORTED_MEDIA_IMAGE: image media
+ * @GRL_SUPPORTED_MEDIA_ALL: any media
+ */
+typedef enum {
+  GRL_SUPPORTED_MEDIA_NONE  = 0,
+  GRL_SUPPORTED_MEDIA_AUDIO = (1 << 0),
+  GRL_SUPPORTED_MEDIA_VIDEO = (1 << 1),
+  GRL_SUPPORTED_MEDIA_IMAGE = (1 << 2),
+  GRL_SUPPORTED_MEDIA_ALL   = (GRL_SUPPORTED_MEDIA_AUDIO | GRL_SUPPORTED_MEDIA_VIDEO | GRL_SUPPORTED_MEDIA_IMAGE)
+} GrlSupportedMedia;
+
 /**
  * GrlSourceChangeType:
  * @GRL_CONTENT_CHANGED: content has changed. It is used when any property of
- * #GrlMedia has changed, or in case of #GrlMediaBox, if several children have
+ * #GrlMedia has changed, or in case of containers, if several children have
  * been added and removed.
  * @GRL_CONTENT_ADDED: new content has been added.
  * @GRL_CONTENT_REMOVED: content has been removed
@@ -132,9 +148,14 @@ typedef enum {
  * @operation_id: operation identifier
  * @media: (transfer full): a data transfer object
  * @user_data: user data passed to grl_source_resolve()
- * @error: (type uint): possible #GError generated at processing
+ * @error: (nullable): possible #GError generated at processing
  *
- * Prototype for the callback passed to grl_source_resolve()
+ * Prototype for the callback passed to grl_source_resolve(). If the URI did
+ * not resolve to a valid media record, @media will be %NULL. If there was an
+ * error during resolution, @error will be set.
+ *
+ * If @media is non-%NULL, ownership of it is transferred to the callback, and
+ * it must be freed afterwards using g_object_unref().
  */
 typedef void (*GrlSourceResolveCb) (GrlSource *source,
                                     guint operation_id,
@@ -146,11 +167,11 @@ typedef void (*GrlSourceResolveCb) (GrlSource *source,
  * GrlSourceResultCb:
  * @source: a source
  * @operation_id: operation identifier
- * @media: (transfer full): a data transfer object
+ * @media: (nullable) (transfer full): a data transfer object
  * @remaining: the number of remaining #GrlMedia to process, or
  * GRL_SOURCE_REMAINING_UNKNOWN if it is unknown
  * @user_data: user data passed to the used method
- * @error: (type uint): possible #GError generated at processing
+ * @error: (nullable): possible #GError generated at processing
  *
  * Prototype for the callback passed to the media sources' methods
  */
@@ -166,7 +187,7 @@ typedef void (*GrlSourceResultCb) (GrlSource *source,
  * @source: a source
  * @media: (transfer full): a data transfer object
  * @user_data: user data passed to grl_source_remove()
- * @error: (type uint): possible #GError generated at processing
+ * @error: (nullable): possible #GError generated at processing
  *
  * Prototype for the callback passed to grl_source_remove()
  */
@@ -182,7 +203,7 @@ typedef void (*GrlSourceRemoveCb) (GrlSource *source,
  * @failed_keys: (element-type GrlKeyID) (transfer none): #GList of
  * keys that could not be updated, if any
  * @user_data: user data
- * @error: (type uint): possible #GError generated
+ * @error: (nullable): possible #GError generated
  *
  * Prototype for the callback passed to grl_source_store_foo functions
  */
@@ -357,7 +378,7 @@ typedef struct {
  */
 typedef struct {
   GrlSource *source;
-  GrlMediaBox *parent;
+  GrlMedia *parent;
   GrlMedia *media;
   GrlSourceStoreCb callback;
   gpointer user_data;
@@ -455,7 +476,7 @@ struct _GrlSourceClass {
 
   void (*query) (GrlSource *source, GrlSourceQuerySpec *qs);
 
-  void (*remove) (GrlSource *source, GrlSourceRemoveSpec *ss);
+  void (*remove) (GrlSource *source, GrlSourceRemoveSpec *rs);
 
   void (*store) (GrlSource *source, GrlSourceStoreSpec *ss);
 
@@ -577,14 +598,14 @@ void grl_source_remove_sync (GrlSource *source,
                              GError **error);
 
 void grl_source_store (GrlSource *source,
-                       GrlMediaBox *parent,
+                       GrlMedia *parent,
                        GrlMedia *media,
                        GrlWriteFlags flags,
                        GrlSourceStoreCb callback,
                        gpointer user_data);
 
 void grl_source_store_sync (GrlSource *source,
-                            GrlMediaBox *parent,
+                            GrlMedia *parent,
                             GrlMedia *media,
                             GrlWriteFlags flags,
                             GError **error);
@@ -622,13 +643,17 @@ const gchar *grl_source_get_id (GrlSource *source);
 
 const gchar *grl_source_get_name (GrlSource *source);
 
+GIcon *grl_source_get_icon (GrlSource *source);
+
 const gchar *grl_source_get_description (GrlSource *source);
 
 GrlPlugin *grl_source_get_plugin (GrlSource *source);
 
 gint grl_source_get_rank (GrlSource *source);
 
-GrlMediaType grl_source_get_supported_media (GrlSource *source);
+GrlSupportedMedia grl_source_get_supported_media (GrlSource *source);
+
+const char ** grl_source_get_tags (GrlSource *source);
 
 G_END_DECLS
 

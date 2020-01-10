@@ -5,12 +5,12 @@
 #
 # Copyright (C) 2010 Igalia S.L.
 
+BUILT_SOURCES = grl-core-keys.h
+
 grl-inspect.c: grl-core-keys.h
 
 grl-core-keys.h: $(top_builddir)/src/grl-metadata-key.h
 	$(AWK) 'BEGIN { printf "gchar *grl_core_keys[] = {\n" } { if ( $$2 ~ /^GRL_METADATA_KEY_/ && $$2 !~ /_GET_/ ) printf "\""$$2"\",\n" } END { printf "};\n" }' $< > $@
-
-INCLUDES = $(DEPS_CFLAGS)
 
 bin_PROGRAMS =			\
 	grl-inspect-@GRL_MAJORMINOR@
@@ -20,6 +20,7 @@ grl_inspect_@GRL_MAJORMINOR@_SOURCES =	\
 	grl-core-keys.h
 
 grl_inspect_@GRL_MAJORMINOR@_CFLAGS =	\
+	$(DEPS_CFLAGS)    						\
 	-DPREFIX=$(prefix)						\
 	-I$(top_srcdir)/src						\
 	-I$(top_srcdir)/src/data
@@ -31,9 +32,4 @@ grl_inspect_@GRL_MAJORMINOR@_LDADD =	\
 
 noinst_HEADERS = grl-core-keys.h
 
-MAINTAINERCLEANFILES =	\
-	grl-core-keys.h		\
-	*.in						\
-	*~
-
-DISTCLEANFILES = $(MAINTAINERCLEANFILES)
+-include $(top_srcdir)/git.mk

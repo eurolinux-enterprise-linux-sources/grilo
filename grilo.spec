@@ -2,27 +2,27 @@
 %define release_version %(echo %{version} | awk -F. '{print $1"."$2}')
 
 Name:           grilo
-Version:        0.2.6
-Release:        5%{?dist}
+Version:        0.3.3
+Release:        1%{?dist}
 Summary:        Content discovery framework
 
-Group:          Applications/Multimedia
 License:        LGPLv2+
-Source0:        http://ftp.gnome.org/pub/GNOME/sources/grilo/%{release_version}/grilo-%{version}.tar.xz
-Url:            http://live.gnome.org/Grilo
+URL:            https://wiki.gnome.org/Projects/Grilo
+Source0:        https://download.gnome.org/sources/grilo/%{release_version}/grilo-%{version}.tar.xz
 
 BuildRequires:  chrpath
 BuildRequires:  gnome-common
-BuildRequires:  vala-devel >= 0.7.2
-BuildRequires:  vala-tools >= 0.7.2
+BuildRequires:  intltool
+BuildRequires:  vala >= 0.27.1
 BuildRequires:  gtk-doc
 BuildRequires:  gobject-introspection-devel >= 0.9.0
 BuildRequires:  libxml2-devel
 BuildRequires:  libsoup-devel
+BuildRequires:  glib2-devel
 # For the test UI
 BuildRequires:  gtk3-devel
-
-Requires:       gobject-introspection
+BuildRequires:  liboauth-devel
+BuildRequires:  totem-pl-parser-devel
 
 %description
 Grilo is a framework that provides access to different sources of
@@ -31,10 +31,10 @@ This package contains the core library and elements.
 
 %package devel
 Summary:        Libraries/include files for Grilo framework
-Group:          Development/Libraries
-
-Requires:       %{name} = %{version}-%{release}
-Requires:       glib2-devel gobject-introspection-devel
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+# Provide upgrade path for -vala subpackage that was merged into -devel during
+# the F23 cycle
+Obsoletes:      grilo-vala < 0.2.13
 
 %description devel
 Grilo is a framework that provides access to different sources of
@@ -42,47 +42,36 @@ multimedia content, using a pluggable system.
 This package contains the core library and elements, as well as
 general and API documentation.
 
-%package vala
-Summary:        Vala language bindings for Grilo framework
-Group:          Development/Libraries
-
-Requires:       %{name}-devel = %{version}-%{release}
-Requires:       vala >= 0.7.2
-
-%description vala
-Grilo is a framework that provides access to different sources of
-multimedia content, using a pluggable system.
-This package contains the Vala language bindings.
-
 %prep
 %setup -q
 
 %build
 %configure                      \
         --enable-vala           \
+        --enable-gtk-doc        \
         --enable-introspection  \
         --enable-grl-net        \
+        --disable-debug          \
         --disable-tests
 
 make %{?_smp_mflags}
 
 %install
-make install DESTDIR=$RPM_BUILD_ROOT
+%make_install
 mkdir -p $RPM_BUILD_ROOT%{_libdir}/grilo-%{release_version}/
 mkdir -p $RPM_BUILD_ROOT%{_datadir}/grilo-%{release_version}/plugins/
 
 # Remove rpath
 chrpath --delete $RPM_BUILD_ROOT%{_bindir}/grl-inspect-%{release_version}
+chrpath --delete $RPM_BUILD_ROOT%{_bindir}/grl-launch-%{release_version}
 chrpath --delete $RPM_BUILD_ROOT%{_bindir}/grilo-test-ui-%{release_version}
 chrpath --delete $RPM_BUILD_ROOT%{_libdir}/libgrlnet-%{release_version}.so.*
+chrpath --delete $RPM_BUILD_ROOT%{_libdir}/libgrlpls-%{release_version}.so
 
 # Remove files that will not be packaged
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.a
 rm -f $RPM_BUILD_ROOT%{_bindir}/grilo-simple-playlist
-
-install -d -m 0755 $RPM_BUILD_ROOT%{_datadir}/gtk-doc/html/grilo/
-install -m 0644 doc/grilo/html/* $RPM_BUILD_ROOT%{_datadir}/gtk-doc/html/grilo/
 
 %find_lang grilo
 
@@ -91,28 +80,45 @@ install -m 0644 doc/grilo/html/* $RPM_BUILD_ROOT%{_datadir}/gtk-doc/html/grilo/
 %postun -p /sbin/ldconfig
 
 %files -f grilo.lang
-%doc AUTHORS COPYING NEWS README TODO
+%license COPYING
+%doc AUTHORS NEWS README TODO
 %{_libdir}/*.so.*
-%{_libdir}/girepository-1.0/*.typelib
+%{_libdir}/girepository-1.0/
 %{_bindir}/grl-inspect-%{release_version}
+%{_bindir}/grl-launch-%{release_version}
 %{_bindir}/grilo-test-ui-%{release_version}
 %{_libdir}/grilo-%{release_version}/
-%{_datadir}/grilo-%{release_version}/plugins/
-%{_mandir}/man1/grl-inspect.1.gz
+%{_datadir}/grilo-%{release_version}/
+%{_mandir}/man1/grilo-test-ui-%{release_version}.1*
+%{_mandir}/man1/grl-inspect-%{release_version}.1*
+%{_mandir}/man1/grl-launch-%{release_version}.1*
 
 %files devel
-%doc AUTHORS COPYING NEWS README TODO
 %{_datadir}/gtk-doc/html/%{name}
 %{_includedir}/%{name}-%{release_version}/
 %{_libdir}/*.so
 %{_libdir}/pkgconfig/*.pc
-%{_datadir}/gir-1.0/*.gir
-
-%files vala
-%doc AUTHORS COPYING NEWS README TODO
-%{_datadir}/vala/vapi/*
+%{_datadir}/gir-1.0/
+%{_datadir}/vala/
 
 %changelog
+* Tue Feb 14 2017 Kalev Lember <klember@redhat.com> - 0.3.3-1
+- Update to 0.3.3
+- Resolves: #1386974
+
+* Tue May 12 2015 Bastien Nocera <bnocera@redhat.com> 0.2.12-2
+- Rebuild for newer totem-pl-parser
+Related: #1174535
+
+* Mon May 04 2015 Bastien Nocera <bnocera@redhat.com> 0.2.12-1
+- Update to 0.2.12
+- Remove the vala changes that require a newer Vala
+Resolves: #1174535
+
+* Thu Mar 19 2015 Richard Hughes <rhughes@redhat.com> - 0.2.11-1
+- Update to 0.2.11
+- Resolves: #1174535
+
 * Fri Jan 24 2014 Daniel Mach <dmach@redhat.com> - 0.2.6-5
 - Mass rebuild 2014-01-24
 

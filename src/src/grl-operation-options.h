@@ -43,6 +43,12 @@ typedef struct {
   gpointer _grl_reserved[GRL_PADDING_SMALL];
 } GrlOperationOptions;
 
+/**
+ * GrlOperationOptionsClass:
+ * @parent: the parent class structure
+ *
+ * Grilo Operation Options class.
+ */
 typedef struct {
   GObjectClass parent;
 
@@ -107,10 +113,10 @@ guint grl_operation_options_get_skip (GrlOperationOptions *options);
 gboolean grl_operation_options_set_count (GrlOperationOptions *options, gint count);
 gint grl_operation_options_get_count (GrlOperationOptions *options);
 
-gboolean grl_operation_options_set_flags (GrlOperationOptions *options,
-                                      GrlResolutionFlags flags);
+gboolean grl_operation_options_set_resolution_flags (GrlOperationOptions *options,
+                                                     GrlResolutionFlags flags);
 GrlResolutionFlags
-    grl_operation_options_get_flags (GrlOperationOptions *options);
+    grl_operation_options_get_resolution_flags (GrlOperationOptions *options);
 
 gboolean grl_operation_options_set_type_filter (GrlOperationOptions *options,
                                                 GrlTypeFilter filter);

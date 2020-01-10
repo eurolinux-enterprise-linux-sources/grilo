@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 #include <glib.h>
 
 #include <grilo.h>
@@ -30,7 +31,6 @@
 #define CHECK_MESSAGE(domain, error_message) \
   (g_strcmp0 (log_domain, domain) == 0 && strstr (message, error_message))
 
-#if GLIB_CHECK_VERSION(2,22,0)
 static gboolean
 registry_load_error_handler (const gchar *log_domain,
                              GLogLevelFlags log_level,
@@ -47,7 +47,6 @@ registry_load_error_handler (const gchar *log_domain,
 
   return TRUE;
 }
-#endif
 
 typedef struct {
   GrlRegistry *registry;
@@ -57,9 +56,7 @@ typedef struct {
 static void
 registry_fixture_setup (RegistryFixture *fixture, gconstpointer data)
 {
-#if GLIB_CHECK_VERSION(2,22,0)
   g_test_log_set_fatal_handler (registry_load_error_handler, NULL);
-#endif
 
   fixture->registry = grl_registry_get_default ();
   fixture->loop = g_main_loop_new (NULL, TRUE);
@@ -85,7 +82,7 @@ registry_load (RegistryFixture *fixture, gconstpointer data)
 {
   gboolean res;
 
-  res = grl_registry_load_all_plugins (fixture->registry, NULL);
+  res = grl_registry_load_all_plugins (fixture->registry, TRUE, NULL);
   g_assert_cmpint (res, ==, TRUE);
 }
 
@@ -102,7 +99,7 @@ registry_unregister (RegistryFixture *fixture, gconstpointer data)
 
   for (sources_iter = sources, i = 0; sources_iter;
       sources_iter = g_list_next (sources_iter), i++) {
-    GrlMediaPlugin *source = GRL_MEDIA_PLUGIN (sources_iter->data);
+    GrlSource *source = GRL_SOURCE (sources_iter->data);
 
     grl_registry_unregister_source (fixture->registry, source, NULL);
   }
@@ -124,6 +121,8 @@ registry_unregister (RegistryFixture *fixture, gconstpointer data)
 int
 main (int argc, char **argv)
 {
+  setlocale (LC_ALL, "");
+
   g_test_init (&argc, &argv, NULL);
 
   g_test_bug_base ("http://bugs.gnome.org/%s");

@@ -1,9 +1,9 @@
 
 /* Generated data (by glib-mkenums) */
 
-#include "grl-type-builtins.h"
-#include "grl-source.h"
-/* enumerations from "grl-source.h" */
+#include <grl-type-builtins.h>
+/* enumerations from "./grl-source.h" */
+#include "./grl-source.h"
 GType
 grl_supported_ops_get_type (void)
 {
@@ -29,6 +29,24 @@ grl_supported_ops_get_type (void)
 }
 
 GType
+grl_supported_media_get_type (void)
+{
+    static GType etype = 0;
+    if (G_UNLIKELY(etype == 0)) {
+        static const GFlagsValue values[] = {
+            { GRL_SUPPORTED_MEDIA_NONE, "GRL_SUPPORTED_MEDIA_NONE", "none" },
+            { GRL_SUPPORTED_MEDIA_AUDIO, "GRL_SUPPORTED_MEDIA_AUDIO", "audio" },
+            { GRL_SUPPORTED_MEDIA_VIDEO, "GRL_SUPPORTED_MEDIA_VIDEO", "video" },
+            { GRL_SUPPORTED_MEDIA_IMAGE, "GRL_SUPPORTED_MEDIA_IMAGE", "image" },
+            { GRL_SUPPORTED_MEDIA_ALL, "GRL_SUPPORTED_MEDIA_ALL", "all" },
+            { 0, NULL, NULL }
+        };
+        etype = g_flags_register_static (g_intern_static_string ("GrlSupportedMedia"), values);
+    }
+    return etype;
+}
+
+GType
 grl_source_change_type_get_type (void)
 {
     static GType etype = 0;
@@ -44,7 +62,8 @@ grl_source_change_type_get_type (void)
     return etype;
 }
 
-/* enumerations from "grl-caps.h" */
+/* enumerations from "./grl-caps.h" */
+#include "./grl-caps.h"
 GType
 grl_type_filter_get_type (void)
 {
@@ -63,7 +82,8 @@ grl_type_filter_get_type (void)
     return etype;
 }
 
-/* enumerations from "grl-operation-options.h" */
+/* enumerations from "./grl-operation-options.h" */
+#include "./grl-operation-options.h"
 GType
 grl_resolution_flags_get_type (void)
 {
@@ -96,7 +116,28 @@ grl_write_flags_get_type (void)
     return etype;
 }
 
-/* enumerations from "data/grl-media.h" */
+/* enumerations from "./grl-metadata-key.h" */
+#include "./grl-metadata-key.h"
+GType
+grl_media_type_get_type (void)
+{
+    static GType etype = 0;
+    if (G_UNLIKELY(etype == 0)) {
+        static const GEnumValue values[] = {
+            { GRL_MEDIA_TYPE_UNKNOWN, "GRL_MEDIA_TYPE_UNKNOWN", "unknown" },
+            { GRL_MEDIA_TYPE_AUDIO, "GRL_MEDIA_TYPE_AUDIO", "audio" },
+            { GRL_MEDIA_TYPE_VIDEO, "GRL_MEDIA_TYPE_VIDEO", "video" },
+            { GRL_MEDIA_TYPE_IMAGE, "GRL_MEDIA_TYPE_IMAGE", "image" },
+            { GRL_MEDIA_TYPE_CONTAINER, "GRL_MEDIA_TYPE_CONTAINER", "container" },
+            { 0, NULL, NULL }
+        };
+        etype = g_enum_register_static (g_intern_static_string ("GrlMediaType"), values);
+    }
+    return etype;
+}
+
+/* enumerations from "./data/grl-media.h" */
+#include "./data/grl-media.h"
 GType
 grl_media_serialize_type_get_type (void)
 {
@@ -109,24 +150,6 @@ grl_media_serialize_type_get_type (void)
             { 0, NULL, NULL }
         };
         etype = g_enum_register_static (g_intern_static_string ("GrlMediaSerializeType"), values);
-    }
-    return etype;
-}
-
-GType
-grl_media_type_get_type (void)
-{
-    static GType etype = 0;
-    if (G_UNLIKELY(etype == 0)) {
-        static const GFlagsValue values[] = {
-            { GRL_MEDIA_TYPE_NONE, "GRL_MEDIA_TYPE_NONE", "none" },
-            { GRL_MEDIA_TYPE_AUDIO, "GRL_MEDIA_TYPE_AUDIO", "audio" },
-            { GRL_MEDIA_TYPE_VIDEO, "GRL_MEDIA_TYPE_VIDEO", "video" },
-            { GRL_MEDIA_TYPE_IMAGE, "GRL_MEDIA_TYPE_IMAGE", "image" },
-            { GRL_MEDIA_TYPE_ALL, "GRL_MEDIA_TYPE_ALL", "all" },
-            { 0, NULL, NULL }
-        };
-        etype = g_flags_register_static (g_intern_static_string ("GrlMediaType"), values);
     }
     return etype;
 }

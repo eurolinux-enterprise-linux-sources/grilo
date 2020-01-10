@@ -35,12 +35,12 @@
 #include <grl-log.h>
 
 #include "grl-net-mock-private.h"
-#include "grl-net-private.h"
 
 static GKeyFile *config = NULL;
 static GRegex *ignored_parameters = NULL;
 static char *base_path = NULL;
 static gboolean enable_mocking = FALSE;
+static gint refcount = 0;
 
 gboolean
 is_mocked (void)
@@ -62,12 +62,18 @@ get_url_mocked (GrlNetWc *self,
 
   if (ignored_parameters) {
     SoupURI *uri = soup_uri_new (url);
-    char *new_query = g_regex_replace (ignored_parameters,
-                                       soup_uri_get_query (uri), -1, 0,
-                                       "", 0, NULL);
-    soup_uri_set_query (uri, *new_query ? new_query : NULL);
-    new_url = soup_uri_to_string (uri, FALSE);
-    soup_uri_free (uri);
+    const char *query = soup_uri_get_query (uri);
+    if (query) {
+      char *new_query = g_regex_replace (ignored_parameters,
+                                         query, -1, 0,
+                                         "", 0, NULL);
+      soup_uri_set_query (uri, *new_query ? new_query : NULL);
+      new_url = soup_uri_to_string (uri, FALSE);
+      soup_uri_free (uri);
+      g_free (new_query);
+    } else {
+      new_url = g_strdup (url);
+    }
   } else {
     new_url = g_strdup (url);
   }
@@ -78,7 +84,9 @@ get_url_mocked (GrlNetWc *self,
                                      GRL_NET_WC_ERROR_NETWORK_ERROR,
                                      "%s",
                                      _("No mock definition found"));
+    g_free (new_url);
     g_simple_async_result_complete_in_idle (G_SIMPLE_ASYNC_RESULT (result));
+    g_object_unref (result);
     return;
   }
 
@@ -90,38 +98,39 @@ get_url_mocked (GrlNetWc *self,
                                      _("Could not find mock content %s"),
                                      error->message);
     g_error_free (error);
+    g_free (new_url);
     g_simple_async_result_complete_in_idle (G_SIMPLE_ASYNC_RESULT (result));
+    g_object_unref (result);
     return;
   }
   if (data_file[0] != '/') {
     full_path = g_build_filename (base_path, data_file, NULL);
   } else {
-    full_path = data_file;
-    data_file = NULL;
+    full_path = g_strdup (data_file);
   }
 
   if (g_stat (full_path, &stat_buf) < 0) {
     g_simple_async_result_set_error (G_SIMPLE_ASYNC_RESULT (result),
                                      GRL_NET_WC_ERROR,
                                      GRL_NET_WC_ERROR_NOT_FOUND,
-                                     "%s",
-                                     _("Could not access mock content"));
+                                     _("Could not access mock content: %s"),
+                                     data_file);
     g_simple_async_result_complete_in_idle (G_SIMPLE_ASYNC_RESULT (result));
-    if (data_file)
-      g_free (data_file);
-    if (full_path)
-      g_free (full_path);
+    g_object_unref (result);
+    g_free (new_url);
+    g_clear_pointer (&data_file, g_free);
+    g_clear_pointer (&full_path, g_free);
+
     return;
   }
-  if (data_file)
-    g_free (data_file);
-  if (full_path)
-    g_free (full_path);
+  g_clear_pointer (&data_file, g_free);
+  g_clear_pointer (&full_path, g_free);
 
   g_simple_async_result_set_op_res_gpointer (G_SIMPLE_ASYNC_RESULT (result),
                                              new_url,
                                              NULL);
   g_simple_async_result_complete_in_idle (G_SIMPLE_ASYNC_RESULT (result));
+  g_object_unref (result);
 }
 
 void
@@ -143,15 +152,18 @@ get_content_mocked (GrlNetWc *self,
   }
   g_file_get_contents (full_path, content, length, &error);
 
-  if (data_file)
-    g_free (data_file);
-
-  if (full_path)
-    g_free (full_path);
+  g_clear_pointer (&data_file, g_free);
+  g_clear_pointer (&full_path, g_free);
 }
 
 void init_mock_requester (GrlNetWc *self)
 {
+  g_atomic_int_inc (&refcount);
+
+  if (refcount > 1) {
+    return;
+  }
+
   char *config_filename = g_strdup (g_getenv (GRL_NET_MOCKED_VAR));
   enable_mocking = FALSE;
   int i;
@@ -187,8 +199,7 @@ void init_mock_requester (GrlNetWc *self)
 
   if (!enable_mocking) {
     g_free (config_filename);
-    g_key_file_unref (config);
-    config = NULL;
+    g_clear_pointer (&config, g_key_file_unref);
     return;
   }
 
@@ -224,6 +235,9 @@ void init_mock_requester (GrlNetWc *self)
                    "for ignored query parameters: %s", error->message);
       g_clear_error (&error);
     }
+
+    g_strfreev (parameter_names);
+    g_string_free (pattern, TRUE);
   }
 
   /* Find base path for mock data. */
@@ -239,16 +253,14 @@ void init_mock_requester (GrlNetWc *self)
 
 void finalize_mock_requester (GrlNetWc *self)
 {
-  if (config) {
-    g_key_file_unref (config);
+  if (refcount == 0) {
+    return;
   }
 
-  if (base_path) {
-    g_free (base_path);
-  }
-
-  if (ignored_parameters) {
-    g_regex_unref (ignored_parameters);
+  if (g_atomic_int_dec_and_test (&refcount)) {
+    g_clear_pointer (&config, g_key_file_unref);
+    g_clear_pointer (&base_path, g_free);
+    g_clear_pointer (&ignored_parameters, g_regex_unref);
   }
 }
 

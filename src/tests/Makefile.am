@@ -11,13 +11,20 @@ noinst_PROGRAMS = $(TEST_PROGS)
 AM_CFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/src/data $(DEPS_CFLAGS)
 progs_ldadd = $(top_builddir)/src/lib@GRL_NAME@.la $(DEPS_LIBS)
 
+if BUILD_GRILO_NET
+AM_CFLAGS += -I$(top_srcdir)/libs $(NET_CFLAGS)
+progs_ldadd += $(top_builddir)/libs/net/libgrlnet-@GRL_MAJORMINOR@.la $(NET_LIBS)
+endif
+
 TEST_PROGS       = registry
 registry_SOURCES = registry.c
 registry_LDADD = $(progs_ldadd)
 
-TEST_PROGS += metadata_source
-metadata_source_SOURCES = metadata_source.c
-metadata_source_LDADD = $(progs_ldadd)
+if BUILD_GRILO_NET
+TEST_PROGS      += lib-net
+lib_net_SOURCES = lib-net.c
+lib_net_LDADD = $(progs_ldadd)
+endif
 
 ### testing rules (from glib)
 
@@ -67,5 +74,4 @@ test-report perf-report full-report:	${TEST_PROGS}
 # run make test as part of make check
 check-local: test
 
-MAINTAINERCLEANFILES = \
-	Makefile.in
+-include $(top_srcdir)/git.mk

@@ -22,6 +22,7 @@
 
 #include <grilo.h>
 #include <glib.h>
+#include <locale.h>
 
 #include "config.h"
 #include "grl-core-keys.h"
@@ -193,6 +194,15 @@ print_keys (const GList *keys)
 }
 
 static void
+print_related_keys (GrlKeyID key)
+{
+  const GList *partners;
+
+  partners = grl_registry_lookup_metadata_key_relation (registry, key);
+  print_keys (partners);
+}
+
+static void
 print_readable_keys (GList *sources, GrlKeyID key)
 {
   GList *s;
@@ -281,20 +291,17 @@ print_version (void)
 {
   g_print ("grl-inspect-" GRL_MAJORMINOR " version " VERSION "\n");
   g_print ("Grilo " VERSION "\n");
-  g_print ("http://live.gnome.org/Grilo\n");
+  g_print ("https://wiki.gnome.org/Projects/Grilo\n");
 }
 
 static void
 introspect_source (const gchar *source_id)
 {
-  GList *info_key;
-  GList *info_keys;
   GrlMediaType supported_media;
   GrlPlugin *plugin;
   GrlSource *source;
   GrlSupportedOps supported_ops;
-  const gchar *value;
-  gchar *key;
+  const gchar **tags;
 
   source = grl_registry_lookup_source (registry, source_id);
 
@@ -304,18 +311,13 @@ introspect_source (const gchar *source_id)
     if (plugin) {
       g_print ("Plugin Details:\n");
       g_print ("  %-20s %s\n", "Identifier:", grl_plugin_get_id (plugin));
-      g_print ("  %-20s %s\n", "Filename:",
-               grl_plugin_get_filename (plugin));
-
-      info_keys = grl_plugin_get_info_keys (plugin);
-      for (info_key = info_keys; info_key; info_key = g_list_next (info_key)) {
-        key = g_strdup_printf ("%s:", (gchar *) info_key->data);
-        key[0] = g_ascii_toupper (key[0]);
-        value = grl_plugin_get_info (plugin, info_key->data);
-        g_print ("  %-20s %s\n", key, value);
-        g_free (key);
-      }
-      g_list_free (info_keys);
+      g_print ("  %-20s %s\n", "Name:", grl_plugin_get_name (plugin));
+      g_print ("  %-20s %s\n", "Description:", grl_plugin_get_description (plugin));
+      g_print ("  %-20s %s\n", "Filename:", grl_plugin_get_filename (plugin));
+      g_print ("  %-20s %s\n", "Author:", grl_plugin_get_author (plugin));
+      g_print ("  %-20s %s\n", "Version:", grl_plugin_get_version (plugin));
+      g_print ("  %-20s %s\n", "License:", grl_plugin_get_license (plugin));
+      g_print ("  %-20s %s\n", "Site:", grl_plugin_get_site (plugin));
       g_print ("\n");
     }
 
@@ -329,6 +331,15 @@ introspect_source (const gchar *source_id)
     g_print ("  %-20s %d\n", "Rank:",
              grl_source_get_rank (source));
 
+    /* Print tags */
+    tags = grl_source_get_tags (source);
+    if (tags) {
+      g_print ("  %-20s %s", "Tags:", *tags);
+      while (*(++tags)) {
+        g_print (", %s", *tags);
+      }
+      g_print ("\n");
+    }
     g_print ("\n");
 
    /* Print supported media */
@@ -374,6 +385,10 @@ introspect_source (const gchar *source_id)
     if (supported_ops & GRL_OP_REMOVE) {
       g_print ("  grl_media_source_remove():\t\tRemove Media\n");
     }
+    if (supported_ops & GRL_OP_MEDIA_FROM_URI) {
+      g_print ("  grl_media_source_test_media_from_uri():\tTest if it can get a Media from an URI\n");
+      g_print ("  grl_media_source_get_media_from_uri():\tGet a Media from an URI\n");
+    }
     g_print ("\n");
 
     /* Print supported signals */
@@ -387,6 +402,9 @@ introspect_source (const gchar *source_id)
     g_print ("Supported keys:\n");
     g_print ("  Readable Keys:\t");
     print_keys (grl_source_supported_keys (source));
+    g_print ("\n");
+    g_print ("  Slow Keys:\t\t");
+    print_keys (grl_source_slow_keys (source));
     g_print ("\n");
     g_print ("  Writable Keys:\t");
     print_keys (grl_source_writable_keys (source));
@@ -418,7 +436,9 @@ introspect_key (const gchar *key_name)
              grl_metadata_key_get_desc (key));
     g_print ("  %-20s %s\n", "Type:",
              g_type_name (grl_metadata_key_get_type (key)));
-    g_print ("\n");
+    g_print ("  %-20s ", "Relations:");
+    print_related_keys (key);
+    g_print ("\n\n");
 
     sources = grl_registry_get_sources (registry, FALSE);
     sources = g_list_sort (sources, (GCompareFunc) compare_sources);
@@ -475,6 +495,8 @@ main (int argc, char *argv[])
   GError *error = NULL;
   GOptionContext *context;
 
+  setlocale (LC_ALL, "");
+
   context = g_option_context_new ("- introspect Grilo elements");
   g_option_context_add_main_entries (context, entries, NULL);
   g_option_context_add_group (context, grl_init_get_option_group ());
@@ -507,10 +529,13 @@ main (int argc, char *argv[])
 
   mainloop = g_main_loop_new (NULL, FALSE);
 
-  grl_registry_load_all_plugins (registry, NULL);
+  grl_registry_load_all_plugins (registry, TRUE, NULL);
 
   g_timeout_add_seconds ((guint) delay, run, NULL);
 
   g_main_loop_run (mainloop);
+
+  grl_deinit ();
+
   return 0;
 }

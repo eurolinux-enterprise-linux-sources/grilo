@@ -33,7 +33,8 @@ G_BEGIN_DECLS
 
 /**
  * GrlNetWcError:
- * @GRL_NET_WC_ERROR_UNAVAILABLE: TBD
+ * @GRL_NET_WC_ERROR_UNAVAILABLE: Deprecated. For generic errors, you
+ * should check for G_IO_ERROR_FAILED from G_IO_ERROR domain.
  * @GRL_NET_WC_ERROR_PROTOCOL_ERROR: Invalid URI or header
  * @GRL_NET_WC_ERROR_AUTHENTICATION_REQUIRED: Required authentication
  * @GRL_NET_WC_ERROR_NOT_FOUND: Request resource not found
@@ -41,8 +42,10 @@ G_BEGIN_DECLS
  * downloaded
  * @GRL_NET_WC_ERROR_FORBIDDEN: TBD
  * @GRL_NET_WC_ERROR_NETWORK_ERROR: Cannot connect to the server
- * @GRL_NET_WC_ERROR_PROXY_ERROR: Cannot connect to the proxy server
- * @GRL_NET_WC_ERROR_CANCELLED: The operation has been cancelled (see #GCancellable)
+ * @GRL_NET_WC_ERROR_PROXY_ERROR: Deprecated. You should check for
+ * G_IO_ERROR_PROXY_FAILED from G_IO_ERROR domain.
+ * @GRL_NET_WC_ERROR_CANCELLED: Deprecated. You should check for
+ * G_IO_ERROR_CANCELLED from G_IO_ERROR domain.
  *
  * These constants identify all the available errors managed by
  * the web client.

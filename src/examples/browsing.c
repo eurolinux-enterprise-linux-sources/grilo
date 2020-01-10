@@ -40,11 +40,11 @@ browse_cb (GrlSource *source,
     /* Get the metadata we are interested in */
     const gchar *title = grl_media_get_title (media);
 
-    /* If the media is a container (box) that means we could
+    /* If the media is a container that means we could
        browse it again (that is, we could use it as the second parameter
        of the grl_media_source_browse method) */
-    if (GRL_IS_MEDIA_BOX (media)) {
-      guint childcount = grl_media_box_get_childcount (GRL_MEDIA_BOX (media));
+    if (grl_media_is_container (media)) {
+      guint childcount = grl_media_get_childcount (media);
       g_debug ("\t Got '%s' (container with %d elements)", title, childcount);
     } else {
       guint seconds = grl_media_get_duration (media);
@@ -94,7 +94,7 @@ source_added_cb (GrlRegistry *registry, GrlSource *source, gpointer user_data)
     caps = grl_source_get_caps (source, GRL_OP_BROWSE);
     options = grl_operation_options_new (caps);
     grl_operation_options_set_count (options, 5);
-    grl_operation_options_set_flags (options, GRL_RESOLVE_IDLE_RELAY);
+    grl_operation_options_set_resolution_flags (options, GRL_RESOLVE_IDLE_RELAY);
 
     grl_source_browse (source,
                        NULL,
@@ -118,7 +118,7 @@ load_plugins (void)
   registry = grl_registry_get_default ();
   g_signal_connect (registry, "source-added",
 		    G_CALLBACK (source_added_cb), NULL);
-  if (!grl_registry_load_all_plugins (registry, &error)) {
+  if (!grl_registry_load_all_plugins (registry, TRUE, &error)) {
     g_error ("Failed to load plugins: %s", error->message);
   }
 }
@@ -132,5 +132,6 @@ main (int argc, gchar *argv[])
   load_plugins ();
   loop = g_main_loop_new (NULL, FALSE);
   g_main_loop_run (loop);
+  grl_deinit ();
   return 0;
 }

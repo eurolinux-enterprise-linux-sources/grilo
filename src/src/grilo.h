@@ -34,10 +34,6 @@
 #include <grl-metadata-key.h>
 #include <grl-data.h>
 #include <grl-media.h>
-#include <grl-media-audio.h>
-#include <grl-media-video.h>
-#include <grl-media-image.h>
-#include <grl-media-box.h>
 #include <grl-config.h>
 #include <grl-related-keys.h>
 #include <grl-source.h>
@@ -51,6 +47,8 @@
 G_BEGIN_DECLS
 
 void grl_init (gint *argc, gchar **argv[]);
+
+void grl_deinit (void);
 
 GOptionGroup *grl_init_get_option_group (void);
 

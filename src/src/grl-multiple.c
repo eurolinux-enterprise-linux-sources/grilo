@@ -82,7 +82,11 @@ struct CallbackData {
 };
 
 struct MediaFromUriCallbackData {
-  gchar *uri;
+  GList/*<unowned GrlSource>*/ *sources;  /* owned */
+  GList/*<unowned GrlSource>*/ *iter;  /* unowned */
+  gchar *uri;  /* owned */
+  GList/*<int>*/ *keys;  /* owned */
+  GrlOperationOptions *options;  /* owned */
   GrlSourceResolveCb user_callback;
   gpointer user_data;
 };
@@ -140,9 +144,11 @@ static void
 handle_no_searchable_sources (GrlSourceResultCb callback, gpointer user_data)
 {
   struct CallbackData *callback_data = g_new0 (struct CallbackData, 1);
+  guint id;
   callback_data->user_callback = callback;
   callback_data->user_data = user_data;
-  g_idle_add (handle_no_searchable_sources_idle, callback_data);
+  id = g_idle_add (handle_no_searchable_sources_idle, callback_data);
+  g_source_set_name_by_id (id, "[grilo] handle_no_searchable_sources_idle");
 }
 
 static struct MultipleSearchData *
@@ -366,10 +372,7 @@ multiple_search_cb (GrlSource *source,
 
   if (msd->cancelled) {
     GRL_DEBUG ("operation is cancelled or already finished, skipping result!");
-    if (media) {
-      g_object_unref (media);
-      media = NULL;
-    }
+    g_clear_object (&media);
     if (operation_done) {
       /* This was the last result and the operation is cancelled
 	 so we don't have anything else to do*/
@@ -464,42 +467,64 @@ static void
 free_media_from_uri_data (struct MediaFromUriCallbackData *mfucd)
 {
   GRL_DEBUG ("free_media_from_uri_data");
+  g_list_free (mfucd->sources);
   g_free (mfucd->uri);
+  g_list_free (mfucd->keys);
+  g_clear_object (&mfucd->options);
   g_free (mfucd);
 }
 
 static void
 media_from_uri_cb (GrlSource *source,
                    guint operation_id,
-				   GrlMedia *media,
-				   gpointer user_data,
-				   const GError *error)
+                   GrlMedia *media,
+                   gpointer user_data,
+                   const GError *error)
 {
+  gboolean found = FALSE;
   struct MediaFromUriCallbackData *mfucd =
     (struct MediaFromUriCallbackData *) user_data;
 
-  if (error) {
-    mfucd->user_callback (NULL, 0, NULL, mfucd->user_data, error);
-  } else if (media) {
+  /* Found a result? */
+  if (media != NULL) {
     mfucd->user_callback (source, 0, media, mfucd->user_data, NULL);
-  } else {
+    free_media_from_uri_data (mfucd);
+    return;
+  }
+
+  /* Try the next source. */
+  for (; !found && mfucd->iter != NULL; mfucd->iter = mfucd->iter->next) {
+    GrlSource *next_source = GRL_SOURCE (mfucd->iter->data);
+
+    if (grl_source_test_media_from_uri (next_source, mfucd->uri)) {
+      grl_source_get_media_from_uri (next_source, mfucd->uri, mfucd->keys,
+                                     mfucd->options, media_from_uri_cb, mfucd);
+      found = TRUE;
+    }
+  }
+
+  /* No source knows how to deal with 'uri', invoke user callback
+   * with NULL GrlMedia */
+  if (!found) {
     GError *_error = g_error_new (GRL_CORE_ERROR,
                                   GRL_CORE_ERROR_MEDIA_FROM_URI_FAILED,
                                   _("Could not resolve media for URI '%s'"),
                                   mfucd->uri);
 
-    mfucd->user_callback (source, 0, media, mfucd->user_data, _error);
-    g_error_free (_error);
-  }
+    mfucd->user_callback (NULL, 0, NULL, mfucd->user_data, _error);
 
-  free_media_from_uri_data (mfucd);
+    g_error_free (_error);
+    free_media_from_uri_data (mfucd);
+
+    return;
+  }
 }
 
 /* ================ API ================ */
 
 /**
  * grl_multiple_search:
- * @sources: (element-type Grl.Source) (allow-none):
+ * @sources: (element-type GrlSource) (allow-none):
  * a #GList of #GrlSource<!-- -->s to search from (%NULL for all
  * searchable sources)
  * @text: the text to search for
@@ -580,6 +605,7 @@ static void
 multiple_search_cancel_cb (struct MultipleSearchData *msd)
 {
   GList *sources, *ids;
+  guint id;
 
   /* Go through all the sources involved in that operation and issue
      cancel() operations for each one */
@@ -597,12 +623,13 @@ multiple_search_cancel_cb (struct MultipleSearchData *msd)
   msd->cancelled = TRUE;
 
   /* Send operation finished message now to client (remaining == 0) */
-  g_idle_add (confirm_cancel_idle, msd);
+  id = g_idle_add (confirm_cancel_idle, msd);
+  g_source_set_name_by_id (id, "[grilo] confirm_cancel_idle");
 }
 
 /**
  * grl_multiple_search_sync:
- * @sources: (element-type Grl.Source) (allow-none):
+ * @sources: (element-type GrlSource) (allow-none):
  * a #GList of #GrlSource<!-- -->s where to search from (%NULL for all
  * available sources with search capability)
  * @text: the text to search for
@@ -615,7 +642,7 @@ multiple_search_cancel_cb (struct MultipleSearchData *msd)
  *
  * This method is synchronous.
  *
- * Returns: (element-type Grl.Media) (transfer full): a list with #GrlMedia elements
+ * Returns: (element-type GrlMedia) (transfer full): a list with #GrlMedia elements
  *
  * Since: 0.2.0
  */
@@ -677,8 +704,8 @@ grl_multiple_get_media_from_uri (const gchar *uri,
 				      gpointer user_data)
 {
   GrlRegistry *registry;
-  GList *sources, *iter;
-  gboolean found = FALSE;
+  GList *sources;
+  struct MediaFromUriCallbackData *mfucd;
 
   g_return_if_fail (uri != NULL);
   g_return_if_fail (keys != NULL);
@@ -691,34 +718,18 @@ grl_multiple_get_media_from_uri (const gchar *uri,
                                             GRL_OP_MEDIA_FROM_URI,
                                             TRUE);
 
-  /* Look for the first source that knows how to deal with 'uri' */
-  iter = sources;
-  while (iter && !found) {
-    GrlSource *source = GRL_SOURCE (iter->data);
-    if (grl_source_test_media_from_uri (source, uri)) {
-      struct MediaFromUriCallbackData *mfucd =
-	g_new0 (struct MediaFromUriCallbackData, 1);
+  /* Iterate through the sources, trying each one which knows how to deal with
+   * @uri, and continuing if it then returns %NULL for the media. */
+  mfucd = g_new0 (struct MediaFromUriCallbackData, 1);
 
-      mfucd->user_callback = callback;
-      mfucd->user_data = user_data;
-      mfucd->uri = g_strdup (uri);
+  mfucd->sources = sources;  /* transfer */
+  mfucd->iter = sources;
+  mfucd->user_callback = callback;
+  mfucd->user_data = user_data;
+  mfucd->uri = g_strdup (uri);
+  mfucd->keys = g_list_copy ((GList *) keys);
+  mfucd->options = g_object_ref (options);
 
-      grl_source_get_media_from_uri (source,
-					   uri,
-					   keys,
-					   options,
-					   media_from_uri_cb,
-					   mfucd);
-      found = TRUE;
-    }
-    iter = g_list_next (iter);
-  }
-
-  g_list_free (sources);
-
-  /* No source knows how to deal with 'uri', invoke user callback
-     with NULL GrlMedia */
-  if (!found) {
-    callback (NULL, 0, NULL, user_data, NULL);
-  }
+  /* Start the first iteration off. */
+  media_from_uri_cb (NULL, 0, NULL, mfucd, NULL);
 }

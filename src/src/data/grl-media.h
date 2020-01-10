@@ -77,30 +77,16 @@ typedef enum {
 } GrlMediaSerializeType;
 
 
-/**
- * GrlMediaType:
- * @GRL_MEDIA_TYPE_NONE: no media
- * @GRL_MEDIA_TYPE_AUDIO: audio media
- * @GRL_MEDIA_TYPE_VIDEO: video media
- * @GRL_MEDIA_TYPE_IMAGE: image media
- * @GRL_MEDIA_TYPE_ALL: any media
- */
-typedef enum {
-  GRL_MEDIA_TYPE_NONE  = 0,
-  GRL_MEDIA_TYPE_AUDIO = (1 << 0),
-  GRL_MEDIA_TYPE_VIDEO = (1 << 1),
-  GRL_MEDIA_TYPE_IMAGE = (1 << 2),
-  GRL_MEDIA_TYPE_ALL   = (GRL_MEDIA_TYPE_AUDIO | GRL_MEDIA_TYPE_VIDEO | GRL_MEDIA_TYPE_IMAGE)
-} GrlMediaType;
-
-typedef struct _GrlMedia      GrlMedia;
-typedef struct _GrlMediaClass GrlMediaClass;
+typedef struct _GrlMedia        GrlMedia;
+typedef struct _GrlMediaPrivate GrlMediaPrivate;
+typedef struct _GrlMediaClass   GrlMediaClass;
 
 struct _GrlMedia
 {
   GrlData parent;
 
   /*< private >*/
+  GrlMediaPrivate *priv;
   gpointer _grl_reserved[GRL_PADDING_SMALL];
 };
 
@@ -163,7 +149,7 @@ void grl_media_set_mime (GrlMedia *media, const gchar *mime);
 
 void grl_media_set_play_count (GrlMedia *media, gint play_count);
 
-void grl_media_set_last_played (GrlMedia *media, const gchar *last_played);
+void grl_media_set_last_played (GrlMedia *media, const GDateTime *last_played);
 
 void grl_media_set_last_position (GrlMedia *media, gint last_position);
 
@@ -179,13 +165,75 @@ void grl_media_set_license (GrlMedia *media, const gchar *license);
 
 void grl_media_set_rating (GrlMedia *media, gfloat rating, gfloat max);
 
-void grl_media_set_url_data (GrlMedia *media, const gchar *url, const gchar *mime);
+void grl_media_set_url_data (GrlMedia *media, const gchar *url, const gchar *mime, gint bitrate, gfloat framerate, gint width, gint height);
 
 void grl_media_set_favourite (GrlMedia *media, gboolean favourite);
 
 void grl_media_set_keyword (GrlMedia *media, const gchar *keyword);
 
-void grl_media_add_url_data (GrlMedia *media, const gchar *url, const gchar *mime);
+void grl_media_set_size (GrlMedia *media, gint64 size);
+
+void grl_media_set_track_number (GrlMedia *media, gint track_number);
+
+void grl_media_set_bitrate (GrlMedia *media, gint bitrate);
+
+void grl_media_set_mb_track_id (GrlMedia *media, const gchar *mb_track_id);
+
+void grl_media_set_mb_recording_id (GrlMedia *media, const gchar *mb_recording_id);
+
+void grl_media_set_mb_artist_id (GrlMedia *media, const gchar *mb_artist_id);
+
+void grl_media_set_mb_album_id (GrlMedia *media, const gchar *mb_album_id);
+
+void grl_media_set_lyrics (GrlMedia *media, const gchar *lyrics);
+
+void grl_media_set_genre (GrlMedia *media, const gchar *genre);
+
+void grl_media_set_album (GrlMedia *media, const gchar *album);
+
+void grl_media_set_album_artist (GrlMedia *media, const gchar *album_artist);
+
+void grl_media_set_album_disc_number (GrlMedia *media, gint disc_number);
+
+void grl_media_set_artist (GrlMedia *media, const gchar *artist);
+
+void grl_media_set_composer (GrlMedia *media, const gchar *composer);
+
+void grl_media_set_width (GrlMedia *media, gint width);
+
+void grl_media_set_height (GrlMedia *media, gint height);
+
+void grl_media_set_framerate (GrlMedia *media, gfloat framerate);
+
+void grl_media_set_season (GrlMedia *media, gint season);
+
+void grl_media_set_episode (GrlMedia *media, gint episode);
+
+void grl_media_set_episode_title (GrlMedia *media, const gchar *episode_title);
+
+void grl_media_set_show (GrlMedia *media, const gchar *show);
+
+void grl_media_set_performer (GrlMedia *media, const gchar *performer);
+
+void grl_media_set_producer (GrlMedia *media, const gchar *producer);
+
+void grl_media_set_director (GrlMedia *media, const gchar *director);
+
+void grl_media_set_original_title (GrlMedia *media, const gchar *original_title);
+
+void grl_media_set_camera_model (GrlMedia *media, const gchar *camera_model);
+
+void grl_media_set_flash_used (GrlMedia *media, const gchar *flash_used);
+
+void grl_media_set_exposure_time (GrlMedia *media, gfloat exposure_time);
+
+void grl_media_set_iso_speed (GrlMedia *media, gfloat iso_speed);
+
+void grl_media_set_orientation (GrlMedia *media, gint orientation);
+
+void grl_media_set_childcount (GrlMedia *media, gint childcount);
+
+void grl_media_add_url_data (GrlMedia *media, const gchar *url, const gchar *mime, gint bitrate, gfloat framerate, gint width, gint height);
 
 void grl_media_add_author (GrlMedia *media, const gchar *author);
 
@@ -199,13 +247,27 @@ void grl_media_add_external_url (GrlMedia *media, const gchar *url);
 
 void grl_media_add_keyword (GrlMedia *media, const gchar *keyword);
 
+void grl_media_add_artist (GrlMedia *media, const gchar *artist);
+
+void grl_media_add_genre (GrlMedia *media, const gchar *genre);
+
+void grl_media_add_lyrics (GrlMedia *media, const gchar *lyrics);
+
+void grl_media_add_mb_artist_id (GrlMedia *media, const gchar *mb_artist_id);
+
+void grl_media_add_performer (GrlMedia *media, const gchar *performer);
+
+void grl_media_add_producer (GrlMedia *media, const gchar *producer);
+
+void grl_media_add_director (GrlMedia *media, const gchar *director);
+
 const gchar *grl_media_get_id (GrlMedia *media);
 
 const gchar *grl_media_get_url (GrlMedia *media);
 
-const gchar *grl_media_get_url_data (GrlMedia *media, gchar **mime);
+const gchar *grl_media_get_url_data (GrlMedia *media, gchar **mime, gint *bitrate, gfloat *framerate, gint *width, gint *height);
 
-const gchar *grl_media_get_url_data_nth (GrlMedia *media, guint index, gchar **mime);
+const gchar *grl_media_get_url_data_nth (GrlMedia *media, guint index, gchar **mime, gint *bitrate, gfloat *framerate, gint *width, gint *height);
 
 const gchar *grl_media_get_author (GrlMedia *media);
 
@@ -254,7 +316,7 @@ gint grl_media_get_play_count (GrlMedia *media);
 
 gint grl_media_get_last_position (GrlMedia *media);
 
-const gchar *grl_media_get_last_played (GrlMedia *media);
+GDateTime *grl_media_get_last_played (GrlMedia *media);
 
 const gchar *grl_media_get_player (GrlMedia *media);
 
@@ -278,9 +340,109 @@ const gchar *grl_media_get_keyword (GrlMedia *media);
 
 const gchar * grl_media_get_keyword_nth (GrlMedia *media, guint index);
 
+gint64 grl_media_get_size (GrlMedia *media);
+
+gint grl_media_get_track_number (GrlMedia *media);
+
+gint grl_media_get_bitrate (GrlMedia *media);
+
+const gchar *grl_media_get_mb_album_id (GrlMedia *media);
+
+const gchar *grl_media_get_mb_artist_id (GrlMedia *media);
+
+const gchar *grl_media_get_mb_artist_id_nth (GrlMedia *media, guint index);
+
+const gchar *grl_media_get_mb_recording_id (GrlMedia *media);
+
+const gchar *grl_media_get_mb_track_id (GrlMedia *media);
+
+const gchar *grl_media_get_lyrics (GrlMedia *media);
+
+const gchar *grl_media_get_lyrics_nth (GrlMedia *media, guint index);
+
+const gchar *grl_media_get_genre (GrlMedia *media);
+
+const gchar *grl_media_get_genre_nth (GrlMedia *media, guint index);
+
+const gchar *grl_media_get_album (GrlMedia *media);
+
+const gchar *grl_media_get_album_artist (GrlMedia *media);
+
+gint grl_media_get_album_disc_number (GrlMedia *media);
+
+const gchar *grl_media_get_artist (GrlMedia *media);
+
+const gchar *grl_media_get_artist_nth (GrlMedia *media, guint index);
+
+const gchar *grl_media_get_composer (GrlMedia *media);
+
+const gchar *grl_media_get_composer_nth (GrlMedia *media, guint index);
+
+GrlMediaType grl_media_get_media_type (GrlMedia *media);
+
+gint grl_media_get_width (GrlMedia *media);
+
+gint grl_media_get_height (GrlMedia *media);
+
+gfloat grl_media_get_framerate (GrlMedia *media);
+
+gint grl_media_get_season (GrlMedia *media);
+
+gint grl_media_get_episode (GrlMedia *media);
+
+const gchar *grl_media_get_episode_title (GrlMedia *media);
+
+const gchar *grl_media_get_show (GrlMedia *media);
+
+const gchar *grl_media_get_performer (GrlMedia *media);
+
+const gchar *grl_media_get_performer_nth (GrlMedia *media, guint index);
+
+const gchar *grl_media_get_producer (GrlMedia *media);
+
+const gchar *grl_media_get_producer_nth (GrlMedia *media, guint index);
+
+const gchar *grl_media_get_director (GrlMedia *media);
+
+const gchar *grl_media_get_director_nth (GrlMedia *media, guint index);
+
+const gchar *grl_media_get_original_title (GrlMedia *media);
+
+const gchar *grl_media_get_camera_model (GrlMedia *media);
+
+const gchar *grl_media_get_flash_used (GrlMedia *media);
+
+gfloat grl_media_get_exposure_time (GrlMedia *media);
+
+gfloat grl_media_get_iso_speed (GrlMedia *media);
+
+gint grl_media_get_orientation (GrlMedia *media);
+
+gint grl_media_get_childcount (GrlMedia *media);
+
 GType grl_media_get_type (void) G_GNUC_CONST;
 
 GrlMedia *grl_media_new (void);
+
+GrlMedia *grl_media_audio_new (void);
+
+GrlMedia *grl_media_video_new (void);
+
+GrlMedia *grl_media_image_new (void);
+
+GrlMedia *grl_media_container_new (void);
+
+gboolean
+grl_media_is_audio (GrlMedia *media);
+
+gboolean
+grl_media_is_video (GrlMedia *media);
+
+gboolean
+grl_media_is_image (GrlMedia *media);
+
+gboolean
+grl_media_is_container (GrlMedia *media);
 
 gchar *grl_media_serialize (GrlMedia *media);
 

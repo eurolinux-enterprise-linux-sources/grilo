@@ -64,9 +64,9 @@ grl_marshal_VOID__BOXED_ENUM_BOOLEAN (GClosure     *closure,
                                                          gint         arg_2,
                                                          gboolean     arg_3,
                                                          gpointer     data2);
-  register GMarshalFunc_VOID__BOXED_ENUM_BOOLEAN callback;
-  register GCClosure *cc = (GCClosure*) closure;
-  register gpointer data1, data2;
+  GMarshalFunc_VOID__BOXED_ENUM_BOOLEAN callback;
+  GCClosure *cc = (GCClosure*) closure;
+  gpointer data1, data2;
 
   g_return_if_fail (n_param_values == 4);
 

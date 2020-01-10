@@ -42,10 +42,28 @@
 
 typedef guint32 GrlKeyID;
 
+/**
+ * GrlMediaType:
+ * @GRL_MEDIA_TYPE_UNKNOWN: unknown media
+ * @GRL_MEDIA_TYPE_AUDIO: audio media
+ * @GRL_MEDIA_TYPE_VIDEO: video media
+ * @GRL_MEDIA_TYPE_IMAGE: image media
+ * @GRL_MEDIA_TYPE_CONTAINER: contaddiner media
+ */
+typedef enum {
+  GRL_MEDIA_TYPE_UNKNOWN,
+  GRL_MEDIA_TYPE_AUDIO,
+  GRL_MEDIA_TYPE_VIDEO,
+  GRL_MEDIA_TYPE_IMAGE,
+  GRL_MEDIA_TYPE_CONTAINER
+} GrlMediaType;
+
 #define g_value_get_grl_key_id(value) ((GrlKeyID) g_value_get_uint(value))
 #define g_value_set_grl_key_id(value,key) g_value_set_uint(value,(guint)key)
 
 #define GRL_METADATA_KEY_INVALID              0
+
+/* BEGIN CORE KEYS */
 
 #define GRL_METADATA_KEY_ALBUM                1
 #define GRL_METADATA_KEY_ARTIST               2
@@ -96,6 +114,19 @@ typedef guint32 GrlKeyID;
 #define GRL_METADATA_KEY_PRODUCER             47
 #define GRL_METADATA_KEY_DIRECTOR             48
 #define GRL_METADATA_KEY_ORIGINAL_TITLE       49
+#define GRL_METADATA_KEY_SIZE                 50
+#define GRL_METADATA_KEY_TITLE_FROM_FILENAME  51
+#define GRL_METADATA_KEY_MB_ALBUM_ID          52
+#define GRL_METADATA_KEY_MB_TRACK_ID          53
+#define GRL_METADATA_KEY_MB_ARTIST_ID         54
+#define GRL_METADATA_KEY_MB_RECORDING_ID      55
+#define GRL_METADATA_KEY_EPISODE_TITLE        56
+#define GRL_METADATA_KEY_AUDIO_TRACK          57
+#define GRL_METADATA_KEY_ALBUM_DISC_NUMBER    58
+#define GRL_METADATA_KEY_COMPOSER             59
+#define GRL_METADATA_KEY_ALBUM_ARTIST         60
+
+/* END CORE KEYS */
 
 G_BEGIN_DECLS
 

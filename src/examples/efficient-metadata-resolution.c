@@ -61,7 +61,7 @@ search_cb (GrlSource *source,
 
     caps = grl_source_get_caps (source, GRL_OP_RESOLVE);
     options = grl_operation_options_new (caps);
-    grl_operation_options_set_flags (options, GRL_RESOLVE_IDLE_RELAY);
+    grl_operation_options_set_resolution_flags (options, GRL_RESOLVE_IDLE_RELAY);
     grl_source_resolve (source,
 			       media,
 			       keys,
@@ -96,7 +96,7 @@ source_added_cb (GrlRegistry *registry, GrlSource *source, gpointer user_data)
   caps = grl_source_get_caps (source, GRL_OP_SEARCH);
   options = grl_operation_options_new (caps);
   grl_operation_options_set_count (options, 5);
-  grl_operation_options_set_flags (options,
+  grl_operation_options_set_resolution_flags (options,
                                    GRL_RESOLVE_IDLE_RELAY
                                    | GRL_RESOLVE_FAST_ONLY);
 
@@ -137,7 +137,7 @@ load_plugins (void)
   registry = grl_registry_get_default ();
   g_signal_connect (registry, "source-added",
 		    G_CALLBACK (source_added_cb), NULL);
-  if (!grl_registry_load_all_plugins (registry, &error)) {
+  if (!grl_registry_load_all_plugins (registry, TRUE, &error)) {
     g_error ("Failed to load plugins: %s", error->message);
   }
 }
@@ -161,6 +161,7 @@ main (int argc, gchar *argv[])
   load_plugins ();
   loop = g_main_loop_new (NULL, FALSE);
   g_main_loop_run (loop);
+  grl_deinit ();
 
   return 0;
 }

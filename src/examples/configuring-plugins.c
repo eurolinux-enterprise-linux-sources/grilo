@@ -28,7 +28,7 @@ load_plugins (void)
   g_signal_connect (registry, "source-added",
                     G_CALLBACK (source_added_cb), NULL);
 
-  if (!grl_registry_load_all_plugins (registry, &error)) {
+  if (!grl_registry_load_all_plugins (registry, TRUE, &error)) {
     g_error ("Failed to load plugins: %s", error->message);
   }
 }
@@ -64,6 +64,8 @@ main (int argc, gchar *argv[])
   /* Run the main loop */
   loop = g_main_loop_new (NULL, FALSE);
   g_main_loop_run (loop);
+
+  grl_deinit ();
 
   return 0;
 }
