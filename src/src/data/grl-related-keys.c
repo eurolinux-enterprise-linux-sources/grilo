@@ -50,14 +50,9 @@ struct _GrlRelatedKeysPrivate {
 static void grl_related_keys_finalize (GObject *object);
 static void free_value (GValue *val);
 
-#define GRL_RELATED_KEYS_GET_PRIVATE(o)                                 \
-  (G_TYPE_INSTANCE_GET_PRIVATE ((o),                                    \
-                                GRL_TYPE_RELATED_KEYS,                  \
-                                GrlRelatedKeysPrivate))
-
 /* ================ GrlRelatedKeys GObject ================ */
 
-G_DEFINE_TYPE (GrlRelatedKeys, grl_related_keys, G_TYPE_OBJECT);
+G_DEFINE_TYPE_WITH_PRIVATE (GrlRelatedKeys, grl_related_keys, G_TYPE_OBJECT);
 
 static void
 grl_related_keys_class_init (GrlRelatedKeysClass *klass)
@@ -65,14 +60,12 @@ grl_related_keys_class_init (GrlRelatedKeysClass *klass)
   GObjectClass *gobject_class = (GObjectClass *)klass;
 
   gobject_class->finalize = grl_related_keys_finalize;
-
-  g_type_class_add_private (klass, sizeof (GrlRelatedKeysPrivate));
 }
 
 static void
 grl_related_keys_init (GrlRelatedKeys *self)
 {
-  self->priv = GRL_RELATED_KEYS_GET_PRIVATE (self);
+  self->priv = grl_related_keys_get_instance_private (self);
   self->priv->data = g_hash_table_new_full (g_direct_hash,
                                             g_direct_equal,
                                             NULL,
@@ -151,12 +144,17 @@ grl_related_keys_new_valist (GrlKeyID key,
       grl_related_keys_set_int (prop, next_key, va_arg (args, gint));
     } else if (key_type == G_TYPE_FLOAT) {
       grl_related_keys_set_float (prop, next_key, va_arg (args, double));
+    } else if (key_type == G_TYPE_BOOLEAN) {
+      grl_related_keys_set_boolean (prop, next_key, va_arg (args, gboolean));
     } else if (key_type == G_TYPE_BYTE_ARRAY) {
       next_value = va_arg (args, gpointer);
       grl_related_keys_set_binary (prop,
                                    next_key,
                                    next_value,
                                    va_arg (args, gsize));
+    } else {
+      GRL_WARNING ("related key type '%s' not handled",
+                   g_type_name (key_type));
     }
     next_key = va_arg (args, GrlKeyID);
   }

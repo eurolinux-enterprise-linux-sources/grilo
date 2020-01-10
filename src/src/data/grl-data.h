@@ -66,6 +66,8 @@ typedef struct _GrlData        GrlData;
 typedef struct _GrlDataClass   GrlDataClass;
 typedef struct _GrlDataPrivate GrlDataPrivate;
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (GrlData, g_object_unref)
+
 struct _GrlData
 {
   GObject parent;
@@ -113,6 +115,8 @@ void grl_data_set_boxed (GrlData *data, GrlKeyID key, gconstpointer boxed);
 
 void grl_data_set_int64 (GrlData *data, GrlKeyID key, gint64 intvalue);
 
+gboolean grl_data_set_for_id (GrlData *data, const gchar *key_name, const GValue *value);
+
 const GValue *grl_data_get (GrlData *data, GrlKeyID key);
 
 const gchar *grl_data_get_string (GrlData *data, GrlKeyID key);
@@ -148,6 +152,8 @@ void grl_data_add_binary (GrlData *data, GrlKeyID key, const guint8 *buf, gsize 
 void grl_data_add_boxed (GrlData *data, GrlKeyID key, gconstpointer boxed);
 
 void grl_data_add_int64 (GrlData *data, GrlKeyID key, gint64 intvalue);
+
+gboolean grl_data_add_for_id (GrlData *data, const gchar *key_name, const GValue *value);
 
 guint grl_data_length (GrlData *data, GrlKeyID key);
 

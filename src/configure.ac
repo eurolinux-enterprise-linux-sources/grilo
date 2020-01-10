@@ -9,7 +9,7 @@ m4_define([prj_name],    [grilo])
 m4_define([prj_gir_name], [Grilo])
 m4_define([grl_major_version], [0])
 m4_define([grl_minor_version], [3])
-m4_define([grl_micro_version], [3])
+m4_define([grl_micro_version], [6])
 m4_define([prj_version], grl_major_version.grl_minor_version.grl_micro_version)
 
 AC_INIT([prj_name],
@@ -57,8 +57,8 @@ AC_DEFINE_UNQUOTED(GRLPLS_VERSION, "$GRLPLS_VERSION", [Grilo Pls library version
 # Libtool library version, not to confuse with API version
 # see http://www.gnu.org/software/libtool/manual/html_node/Libtool-versioning.html
 
-GRL_LT_VERSION=1:2:1
-GRLNET_LT_VERSION=0:3:0
+GRL_LT_VERSION=2:0:2
+GRLNET_LT_VERSION=0:5:0
 GRLPLS_LT_VERSION=0:0:0
 
 AC_SUBST([GRL_LT_VERSION])
@@ -112,11 +112,13 @@ AC_DEFINE_UNQUOTED(GRL_PLUGINS_DIR, "$GRL_PLUGINS_DIR", [Plugins directory])
 # DEPENDENCIES
 # ----------------------------------------------------------
 
-PKG_CHECK_MODULES(DEPS, glib-2.0 >= 2.34 \
-			gobject-2.0 \
-			gmodule-2.0 \
-			gio-2.0 >= 2.44\
-			libxml-2.0)
+GLIB2_REQUIRED=2.44
+
+PKG_CHECK_MODULES(DEPS, glib-2.0 >= $GLIB2_REQUIRED \
+                        gobject-2.0 >= $GLIB2_REQUIRED \
+                        gmodule-2.0 >= $GLIB2_REQUIRED \
+                        gio-2.0 >= $GLIB2_REQUIRED \
+                        libxml-2.0)
 
 
 GLIB_GENMARSHAL=`pkg-config --variable=glib_genmarshal glib-2.0`

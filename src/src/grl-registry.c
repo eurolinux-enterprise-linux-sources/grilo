@@ -70,11 +70,6 @@ GRL_LOG_DOMAIN(registry_log_domain);
 #define SOURCE_IS_INVISIBLE(src)                                \
   GPOINTER_TO_INT(g_object_get_data(G_OBJECT(src), "invisible"))
 
-#define GRL_REGISTRY_GET_PRIVATE(object)                        \
-  (G_TYPE_INSTANCE_GET_PRIVATE((object),                        \
-                               GRL_TYPE_REGISTRY,               \
-                               GrlRegistryPrivate))
-
 /* GQuark-like implementation, where we manually assign the first IDs. */
 struct KeyIDHandler {
   GHashTable *string_to_id;
@@ -131,13 +126,11 @@ enum {
 };
 static gint registry_signals[SIG_LAST];
 
-G_DEFINE_TYPE (GrlRegistry, grl_registry, G_TYPE_OBJECT);
+G_DEFINE_TYPE_WITH_PRIVATE (GrlRegistry, grl_registry, G_TYPE_OBJECT);
 
 static void
 grl_registry_class_init (GrlRegistryClass *klass)
 {
-  g_type_class_add_private (klass, sizeof (GrlRegistryPrivate));
-
   /**
    * GrlRegistry::source-added:
    * @registry: the registry
@@ -291,7 +284,7 @@ network_changed_cb (GObject     *gobject,
 static void
 grl_registry_init (GrlRegistry *registry)
 {
-  registry->priv = GRL_REGISTRY_GET_PRIVATE (registry);
+  registry->priv = grl_registry_get_instance_private (registry);
 
   registry->priv->configs =
     g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) configs_free);
@@ -461,7 +454,7 @@ register_keys_plugin (GrlRegistry *registry,
     g_set_error (error,
                  GRL_CORE_ERROR,
                  GRL_CORE_ERROR_LOAD_PLUGIN_FAILED,
-                 _("Plugin '%s' is already loaded"), grl_plugin_get_id (plugin));
+                 _("Plugin “%s” is already loaded"), grl_plugin_get_id (plugin));
     return FALSE;
   }
 
@@ -527,7 +520,7 @@ grl_registry_register_metadata_key_full (GrlRegistry *registry,
       g_set_error (error,
                    GRL_CORE_ERROR,
                    GRL_CORE_ERROR_REGISTER_METADATA_KEY_FAILED,
-                   _("Metadata key '%s' already registered in different format"),
+                   _("Metadata key “%s” already registered in different format"),
                    key_name);
       return GRL_METADATA_KEY_INVALID;
     }
@@ -540,7 +533,7 @@ grl_registry_register_metadata_key_full (GrlRegistry *registry,
     g_set_error (error,
                  GRL_CORE_ERROR,
                  GRL_CORE_ERROR_REGISTER_METADATA_KEY_FAILED,
-                 _("Metadata key '%s' cannot be registered"),
+                 _("Metadata key “%s” cannot be registered"),
                  key_name);
 
     return GRL_METADATA_KEY_INVALID;
@@ -570,6 +563,74 @@ grl_registry_register_metadata_key_full (GrlRegistry *registry,
   }
 
   return registered_key;
+}
+
+G_GNUC_INTERNAL GrlKeyID
+grl_registry_register_metadata_key_for_type (GrlRegistry *registry,
+                                             const gchar *key_name,
+                                             GType type)
+{
+  GParamSpec *spec;
+
+  switch (type) {
+  case G_TYPE_INT:
+    spec = g_param_spec_int (key_name,
+                             key_name,
+                             key_name,
+                             0, G_MAXINT,
+                             0,
+                             G_PARAM_STATIC_STRINGS | G_PARAM_READWRITE);
+    break;
+
+  case G_TYPE_INT64:
+    spec = g_param_spec_int64 (key_name,
+                               key_name,
+                               key_name,
+                               -1, G_MAXINT64,
+                               -1,
+                               G_PARAM_STATIC_STRINGS | G_PARAM_READWRITE);
+    break;
+
+  case G_TYPE_STRING:
+    spec = g_param_spec_string (key_name,
+                                key_name,
+                                key_name,
+                                NULL,
+                                G_PARAM_STATIC_STRINGS | G_PARAM_READWRITE);
+    break;
+
+  case G_TYPE_BOOLEAN:
+    spec = g_param_spec_boolean (key_name,
+                                 key_name,
+                                 key_name,
+                                 FALSE,
+                                 G_PARAM_STATIC_STRINGS | G_PARAM_READWRITE);
+    break;
+
+  case G_TYPE_FLOAT:
+    spec = g_param_spec_float (key_name,
+                               key_name,
+                               key_name,
+                               0, G_MAXFLOAT,
+                               0,
+                               G_PARAM_STATIC_STRINGS | G_PARAM_READWRITE);
+    break;
+
+  default:
+    if (type == G_TYPE_DATE_TIME) {
+        spec = g_param_spec_boxed (key_name,
+                                   key_name,
+                                   key_name,
+                                   G_TYPE_DATE_TIME,
+                                   G_PARAM_STATIC_STRINGS | G_PARAM_READWRITE);
+    } else {
+      GRL_WARNING ("'%s' is being ignored as G_TYPE '%s' is not being handled",
+                   key_name, G_VALUE_TYPE_NAME (type));
+      return GRL_METADATA_KEY_INVALID;
+    }
+  }
+
+  return grl_registry_register_metadata_key (registry, spec, GRL_METADATA_KEY_INVALID, NULL);
 }
 
 static void
@@ -980,7 +1041,7 @@ grl_registry_unregister_source (GrlRegistry *registry,
     g_set_error (error,
                  GRL_CORE_ERROR,
                  GRL_CORE_ERROR_UNREGISTER_SOURCE_FAILED,
-                 _("Source with id '%s' was not found"), id);
+                 _("Source with id “%s” was not found"), id);
     ret = FALSE;
   }
 
@@ -1074,7 +1135,7 @@ grl_registry_prepare_plugin (GrlRegistry *registry,
     g_set_error (error,
                  GRL_CORE_ERROR,
                  GRL_CORE_ERROR_LOAD_PLUGIN_FAILED,
-                 _("'%s' is not a valid plugin file"), library_filename);
+                 _("“%s” is not a valid plugin file"), library_filename);
     g_module_close (module);
     return NULL;
   }
@@ -1093,7 +1154,7 @@ grl_registry_prepare_plugin (GrlRegistry *registry,
       g_set_error (error,
                    GRL_CORE_ERROR,
                    GRL_CORE_ERROR_LOAD_PLUGIN_FAILED,
-                   _("Plugin '%s' already exists"), library_filename);
+                   _("Plugin “%s” already exists"), library_filename);
       return NULL;
     }
   }
@@ -1363,7 +1424,7 @@ grl_registry_activate_plugin_by_id (GrlRegistry *registry,
     g_set_error (error,
                  GRL_CORE_ERROR,
                  GRL_CORE_ERROR_LOAD_PLUGIN_FAILED,
-                 _("Plugin '%s' not available"), plugin_id);
+                 _("Plugin “%s” not available"), plugin_id);
     return FALSE;
   }
 
@@ -1374,7 +1435,7 @@ grl_registry_activate_plugin_by_id (GrlRegistry *registry,
     g_set_error (error,
                  GRL_CORE_ERROR,
                  GRL_CORE_ERROR_LOAD_PLUGIN_FAILED,
-                 _("Plugin '%s' is already loaded"), plugin_id);
+                 _("Plugin “%s” is already loaded"), plugin_id);
     return FALSE;
   }
 
@@ -1591,7 +1652,7 @@ grl_registry_unload_plugin (GrlRegistry *registry,
     g_set_error (error,
                  GRL_CORE_ERROR,
                  GRL_CORE_ERROR_UNLOAD_PLUGIN_FAILED,
-                 _("Plugin not found: '%s'"), plugin_id);
+                 _("Plugin not found: “%s”"), plugin_id);
     return FALSE;
   }
 
@@ -1902,7 +1963,7 @@ grl_registry_add_config (GrlRegistry *registry,
     g_set_error (error,
                  GRL_CORE_ERROR,
                  GRL_CORE_ERROR_CONFIG_FAILED,
-                 _("Plugin configuration does not contain 'plugin-id' reference"));
+                 _("Plugin configuration does not contain “plugin-id” reference"));
     return FALSE;
   }
 

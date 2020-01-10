@@ -1,4 +1,768 @@
-commit 53b44b711a4558c0511dbe73d928971fd2c7bb30
+commit 6cd2e5e94f1ba2a8bf7c42da98523b3d76b5e298
+Author: Victor Toso <me@victortoso.com>
+Date:   Thu Jul 26 18:02:29 2018 +0200
+
+    Release 0.3.6
+
+ NEWS         | 13 +++++++++++++
+ configure.ac |  4 ++--
+ 2 files changed, 15 insertions(+), 2 deletions(-)
+
+commit d2114dd7c5c22eb416fabdcf37a74c801c1309f6
+Author: Victor Toso <me@victortoso.com>
+Date:   Wed Jul 25 14:03:29 2018 +0200
+
+    build-sys: require same version for glib components
+    
+    As gio-2.0 requirement was 2.44 since 555654f4132801 we can use the
+    same version for all glib components:
+    - gobject-2.0
+    - gmodule-2.0
+    - gio-2.0
+    - glib-2.0
+
+ configure.ac | 12 +++++++-----
+ meson.build  | 11 +++++++----
+ 2 files changed, 14 insertions(+), 9 deletions(-)
+
+commit 2b8b32e947ee3317edd2c74decbcfe2e67d81e02
+Author: 1PunMan <saurabhsingh412@gmail.com>
+Date:   Sun Jun 10 00:09:43 2018 +0530
+
+    core: Add grl_data_add_for_id()
+    
+    grl_data_add_for_id() allow unregistered keys to be
+    registered and set multiple values to it.
+    
+    https://gitlab.gnome.org/GNOME/grilo/issues/1
+
+ src/data/grl-data.c | 64 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/data/grl-data.h |  2 ++
+ 2 files changed, 66 insertions(+)
+
+commit b30608abacd37a4e39d5c5465efc82c566756631
+Author: 1PunMan <saurabhsingh412@gmail.com>
+Date:   Mon May 28 13:36:42 2018 +0530
+
+    core: Add grl_data_set_for_id()
+    
+    grl_data_set_for_id() allows keys that aren't registered,
+    to be registered and set it's value. It simply sets the value
+    for registered keys.
+    
+    https://gitlab.gnome.org/GNOME/grilo/issues/1
+
+ src/data/grl-data.c     | 69 ++++++++++++++++++++++++++++++++++++++++++++++++-
+ src/data/grl-data.h     |  2 ++
+ src/grl-registry-priv.h |  4 +++
+ src/grl-registry.c      | 68 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 142 insertions(+), 1 deletion(-)
+
+commit 06cd3944cc0a81a46c983f21a3bb6bc0266745c8
+Author: Victor Toso <me@victortoso.com>
+Date:   Wed Jul 25 00:15:45 2018 +0200
+
+    net: Remove deprecated g_type_class_add_private()
+    
+    Similar to previous commit but for the libs. Only the net library uses
+    g_type_class_add_private().
+
+ libs/net/grl-net-wc.c | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
+
+commit c76929fc7499d533fc6fb931ba2538147d5b9cb0
+Author: Victor Toso <me@victortoso.com>
+Date:   Tue Jul 24 23:54:44 2018 +0200
+
+    core: Remove deprecated g_type_class_add_private()
+    
+    Instead we define the class with G_DEFINE_TYPE_WITH_PRIVATE().
+    
+    This also removes the usage of G_TYPE_INSTANCE_GET_PRIVATE() as we use
+    instead the _get_instance_private()
+    
+    Notes:
+    - grl-caps: G_DEFINE_TYPE_WITH_PRIVATE had to be moved after
+      struct _GrlCapsPrivate definition;
+    - grl-operation-options: Idem to grl-caps
+
+ src/data/grl-config.c       |  9 ++-------
+ src/data/grl-data.c         |  9 ++-------
+ src/data/grl-media.c        | 12 ++----------
+ src/data/grl-related-keys.c | 11 ++---------
+ src/grl-caps.c              | 10 ++--------
+ src/grl-operation-options.c |  9 ++-------
+ src/grl-plugin.c            | 12 ++----------
+ src/grl-registry.c          | 11 ++---------
+ src/grl-source.c            | 17 +++++------------
+ 9 files changed, 21 insertions(+), 79 deletions(-)
+
+commit 82c54af9e6eac38f51c871909df0ba5e10816f6a
+Author: Bastien Nocera <hadess@hadess.net>
+Date:   Tue Jul 24 12:14:09 2018 +0200
+
+    grl-inspect: Add Python3 support to grilo-inspect
+    
+    We need to run a few commands to generate headers before compiling
+    grilo-inspect, make sure to support both Python2 and Python3.
+
+ tools/grilo-inspect/meson.build | 8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+
+commit c146f752475b53eddaa5b86090593125789ce93e
+Author: Bastien Nocera <hadess@hadess.net>
+Date:   Sun Jul 22 14:16:19 2018 +0200
+
+    build: Add CI
+    
+    So we don't get uncompiled MRs anymore.
+
+ .gitlab-ci.yml | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+commit cec88ac67bd3e216cbdd4fdfaffce428939fc3b6
+Author: Milo Casagrande <milo@ubuntu.com>
+Date:   Thu Jul 19 06:44:29 2018 +0000
+
+    Update Italian translation
+
+ po/it.po | 118 +++++++++++++++++++++++++++++++--------------------------------
+ 1 file changed, 58 insertions(+), 60 deletions(-)
+
+commit 2449de2a4b3c910c9ca7b15036e6216b9f81f2e3
+Author: Victor Toso <me@victortoso.com>
+Date:   Tue Jul 17 16:36:31 2018 +0200
+
+    Post-release version bump to 0.3.6
+
+ configure.ac | 2 +-
+ meson.build  | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+commit 66bc17e9f7f99f494302226ec333ee175d0f906b
+Author: Victor Toso <me@victortoso.com>
+Date:   Tue Jul 17 16:22:39 2018 +0200
+
+    Release 0.3.5
+
+ NEWS         | 54 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ configure.ac |  4 ++--
+ 2 files changed, 56 insertions(+), 2 deletions(-)
+
+commit 8b716af3d2c758a6c604ddc1f588aa112c9c9a9f
+Author: Victor Toso <me@victortoso.com>
+Date:   Tue Jul 17 13:08:08 2018 +0200
+
+    build: include meson in the tarballs
+    
+    https://gitlab.gnome.org/GNOME/grilo/issues/4
+
+ Makefile.am | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+commit adc11e54537aff804c6dcd8d26ade0114632157b
+Author: veer <bveer428@gmail.com>
+Date:   Tue Jun 12 04:34:54 2018 +0530
+
+    test-ui: Use GMenu and GAction for application menu
+    
+    This fixes the following deprecation warnings:
+    
+     | main.c: In function ‘changes_notification_cb’:
+     | main.c:286:3: warning: ‘gtk_toggle_action_get_active’ is deprecated
+     |    ui_state->changes_notification = gtk_toggle_action_get_active (action);
+     |    ^~~~~~~~
+    
+     | main.c: In function ‘ui_setup’:
+     | main.c:1878:3: warning: ‘gtk_action_group_new’ is deprecated
+     |    GtkActionGroup *actions = gtk_action_group_new ("actions");
+     |    ^~~~~~~~~~~~~~
+    
+     | main.c:1879:3: warning: ‘gtk_action_group_add_actions’ is deprecated
+     |    gtk_action_group_add_actions (actions, entries, G_N_ELEMENTS (entries), NULL);
+     |    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+     | main.c:1880:3: warning: ‘gtk_action_group_add_toggle_actions’ is deprecated
+     |    gtk_action_group_add_toggle_actions (actions, toggle_entries, G_N_ELEMENTS (toggle_entries), NULL);
+     |    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+     | main.c:1882:3: warning: ‘gtk_ui_manager_new’ is deprecated
+     |    GtkUIManager *uiman = gtk_ui_manager_new ();
+     |    ^~~~~~~~~~~~
+    
+     | main.c:1883:3: warning: ‘gtk_ui_manager_insert_action_group’ is deprecated
+     |    gtk_ui_manager_insert_action_group (uiman, actions, 0);
+     |    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+     | main.c:1885:31: warning: ‘gtk_ui_manager_get_accel_group’ is deprecated
+     |                                gtk_ui_manager_get_accel_group (uiman));
+     |                                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+     | main.c:1886:3: warning: ‘gtk_ui_manager_add_ui_from_string’ is deprecated
+     |    gtk_ui_manager_add_ui_from_string (uiman, ui_definition, -1, NULL);
+     |    ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+     | main.c:1890:23: warning: ‘gtk_ui_manager_get_widget’ is deprecated
+     |                        gtk_ui_manager_get_widget (uiman, "/MainMenu"),
+     |                        ^~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    Signed-off-by: Victor Toso <victortoso@redhat.com>
+
+ tools/grilo-test-ui/main.c | 192 ++++++++++++++++++++++++++++++---------------
+ 1 file changed, 128 insertions(+), 64 deletions(-)
+
+commit e2c649364b0e1c05e1177417d16c4374f6b6a5d3
+Author: Yi-Soo An <yisooan@gmail.com>
+Date:   Thu Jul 12 16:52:12 2018 +0900
+
+    tests: Add g_autoptr tests
+    
+    The tests are for the classes
+    - GrlNetWc
+    - GrlData
+    - GrlMedia
+    - GrlRelatedKeys
+    - GrlCaps
+    - GrlOperationOptions
+    - GrlPlugin
+    
+    https://gitlab.gnome.org/GNOME/grilo/merge_requests/10
+
+ tests/Makefile.am |   4 +++
+ tests/autoptr.c   | 101 ++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 105 insertions(+)
+
+commit 18ae3196dff76711f30c131d25ede2b5ccee4bb1
+Author: Yi-Soo An <yisooan@gmail.com>
+Date:   Thu Jul 12 16:41:06 2018 +0900
+
+    net-wc: Add G_DEFINE_AUTOPTR_CLEANUP_FUNC
+    
+    To support g_autoptr, it is added.
+    
+    https://gitlab.gnome.org/GNOME/grilo/merge_requests/10
+
+ libs/net/grl-net-wc.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+commit 6b49c5e9b16309ce99d1f4d72e09ffb3acf3cc72
+Author: Yi-Soo An <yisooan@gmail.com>
+Date:   Thu Jul 12 15:31:45 2018 +0900
+
+    plugin: Add G_DEFINE_AUTOPTR_CLEANUP_FUNC
+    
+    To support g_autoptr, it is added.
+    
+    https://gitlab.gnome.org/GNOME/grilo/merge_requests/10
+
+ src/grl-plugin.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+commit e1a8991e0ff6c011b1b6fcad93f772674afeab6e
+Author: Yi-Soo An <yisooan@gmail.com>
+Date:   Thu Jul 12 14:12:26 2018 +0900
+
+    caps: Add G_DEFINE_AUTOPTR_CLEANUP_FUNC
+    
+    To support g_autoptr, it is added.
+    
+    https://gitlab.gnome.org/GNOME/grilo/merge_requests/10
+
+ src/grl-caps.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+commit 2d8bed42b01a2d08c717a0c7247367c3dc4dc14e
+Author: Yi-Soo An <yisooan@gmail.com>
+Date:   Wed Jul 11 15:00:54 2018 +0900
+
+    related-keys: Add G_DEFINE_AUTOPTR_CLEANUP_FUNC
+    
+    To support g_autoptr, it is added.
+    
+    https://gitlab.gnome.org/GNOME/grilo/merge_requests/10
+
+ src/data/grl-related-keys.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+commit 97da2d3aa924df4c98429a4dbf42ac0856866413
+Author: Yi-Soo An <yisooan@gmail.com>
+Date:   Wed Jul 11 14:57:35 2018 +0900
+
+    data: Add G_DEFINE_AUTOPTR_CLEANUP_FUNC
+    
+    To support g_autoptr, it is added.
+    
+    https://gitlab.gnome.org/GNOME/grilo/merge_requests/10
+
+ src/data/grl-data.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+commit aa44edd82f0c2960173a7cfaf4a4f2c1b52b64cf
+Author: Yi-Soo An <yisooan@gmail.com>
+Date:   Wed Jul 11 14:33:44 2018 +0900
+
+    operation-options: Add G_DEFINE_AUTOPTR_CLEANUP_FUNC
+    
+    To support g_autoptr, it is added.
+    
+    https://gitlab.gnome.org/GNOME/grilo/merge_requests/10
+
+ src/grl-operation-options.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+commit 317d77de3b44030e972e51d4a470870e2dc6aef4
+Author: Yi-Soo An <yisooan@gmail.com>
+Date:   Wed Jul 11 14:28:57 2018 +0900
+
+    media: Add G_DEFINE_AUTOPTR_CLEANUP_FUNC
+    
+    To support g_autoptr, it is added.
+    
+    https://gitlab.gnome.org/GNOME/grilo/merge_requests/10
+
+ src/data/grl-media.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+commit b2e21c38e4b2e2c31223dc3a26022c8107d604e9
+Author: Matej Urbančič <mateju@svn.gnome.org>
+Date:   Wed Jul 11 21:45:27 2018 +0200
+
+    Added Slovenian translation
+
+ po/sl.po | 144 +++++++++++++++++++++++++++++++--------------------------------
+ 1 file changed, 70 insertions(+), 74 deletions(-)
+
+commit 5b60c7458e631cf943603c322ed0076f1ce33a65
+Author: veer <bveer428@gmail.com>
+Date:   Sat Jun 9 19:05:30 2018 +0530
+
+    test-ui: Fix -Wenum-compare
+    
+    ../tools/grilo-test-ui/main.c: In function ‘supported_media_to_str’:
+    ../tools/grilo-test-ui/main.c:905:12: warning: comparison between
+    ‘GrlMediaType’ {aka ‘enum <anonymous>’} and ‘enum <anonymous>’
+    [-Wenum-compare]
+    
+       if (type == GRL_SUPPORTED_MEDIA_NONE)
+                ^~
+    
+    ../tools/grilo-test-ui/main.c:907:12: warning: comparison between
+    ‘GrlMediaType’ {aka ‘enum <anonymous>’} and ‘enum <anonymous>’
+    [-Wenum-compare]
+    
+       if (type == GRL_SUPPORTED_MEDIA_ALL)
+                ^~
+    
+    https://gitlab.gnome.org/GNOME/grilo/issues/7
+    Signed-off-by: Victor Toso <victortoso@redhat.com>
+
+ tools/grilo-test-ui/main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit 437da35985c17d3c64b0b51390aff67f609f6e66
+Author: Balázs Meskó <meskobalazs@fedoraproject.org>
+Date:   Sat Jul 7 14:20:40 2018 +0000
+
+    Update Hungarian translation
+
+ po/hu.po | 122 ++++++++++++++++++++++++++++++---------------------------------
+ 1 file changed, 59 insertions(+), 63 deletions(-)
+
+commit 30a88ff561121b902cc8af8cfb9d17eae06304aa
+Author: Daniel Șerbănescu <daniel@serbanescu.dk>
+Date:   Thu Jun 28 18:56:49 2018 +0000
+
+    Update Romanian translation
+
+ po/ro.po | 38 +++++++++++++++++++-------------------
+ 1 file changed, 19 insertions(+), 19 deletions(-)
+
+commit 0e4ea9e97fa882f12f928e6053d4dd8dc30dfe6f
+Author: Fabio Tomat <f.t.public@gmail.com>
+Date:   Tue Jun 26 20:16:55 2018 +0000
+
+    Update Friulian translation
+
+ po/fur.po | 137 ++++++++++++++++++++++++++++++--------------------------------
+ 1 file changed, 67 insertions(+), 70 deletions(-)
+
+commit bdb2bccae0f1f701ca799e4a8fb678f84b037dde
+Author: Andika Triwidada <atriwidada@gnome.org>
+Date:   Sat Jun 23 03:12:29 2018 +0000
+
+    Update Indonesian translation
+
+ po/id.po | 139 +++++++++++++++++++++++++++++++--------------------------------
+ 1 file changed, 68 insertions(+), 71 deletions(-)
+
+commit e10ae49a956ff86d59702915d4c729d8981e3085
+Author: Daniel Mustieles <daniel.mustieles.contractor@bbva.com>
+Date:   Thu Jun 21 10:05:40 2018 +0200
+
+    Updated Spanish translation
+
+ po/es.po | 138 +++++++++++++++++++++++++++++++++------------------------------
+ 1 file changed, 72 insertions(+), 66 deletions(-)
+
+commit 2d0dd2014f000455404413ddd70ab179c7a0c12c
+Author: Mario Blättermann <mario.blaettermann@gmail.com>
+Date:   Sun Jun 17 11:14:50 2018 +0000
+
+    Update German translation
+
+ po/de.po | 124 +++++++++++++++++++++++++++++----------------------------------
+ 1 file changed, 57 insertions(+), 67 deletions(-)
+
+commit 9abc2e219609ec069bae0fc0670307f7f36c81fa
+Author: Marek Cernocky <marek_cernocky@conel.cz>
+Date:   Thu Jun 14 14:03:05 2018 +0200
+
+    Updated Czech translation
+
+ po/cs.po | 116 ++++++++++++++++++++++++++++++---------------------------------
+ 1 file changed, 55 insertions(+), 61 deletions(-)
+
+commit 89cabea116fa540e396f96e36430fc705a571163
+Author: Yi-Jyun Pan <pan93412@gmail.com>
+Date:   Wed Jun 13 14:42:27 2018 +0000
+
+    Update Chinese (Taiwan) translation
+
+ po/zh_TW.po | 119 +++++++++++++++++++++++++++++-------------------------------
+ 1 file changed, 58 insertions(+), 61 deletions(-)
+
+commit fa5999f3b5c1a121905469577dee6cfd5c867319
+Author: Anders Jonsson <anders.jonsson@norsjovallen.se>
+Date:   Sun Jun 10 15:58:19 2018 +0000
+
+    Update Swedish translation
+
+ po/sv.po | 115 +++++++++++++++++++++++++++++++--------------------------------
+ 1 file changed, 57 insertions(+), 58 deletions(-)
+
+commit e8424d28d9b08d91e47ee228dd18d25075e11473
+Author: Piotr Drąg <piotrdrag@gmail.com>
+Date:   Sun Jun 10 15:28:01 2018 +0200
+
+    Update Polish translation
+
+ po/pl.po | 119 ++++++++++++++++++++++++++++++---------------------------------
+ 1 file changed, 57 insertions(+), 62 deletions(-)
+
+commit bba45f60671f1da555cafc1a3c072cef12198367
+Author: Rafael Fontenelle <rafaelff@gnome.org>
+Date:   Sat Jun 9 14:03:08 2018 +0000
+
+    Update Brazilian Portuguese translation
+
+ po/pt_BR.po | 145 +++++++++++++++++++++++++++++-------------------------------
+ 1 file changed, 70 insertions(+), 75 deletions(-)
+
+commit 31ecb8381a8b48ae394c8b783994d1be21d6ee96
+Author: Piotr Drąg <piotrdrag@gmail.com>
+Date:   Thu Oct 6 04:05:23 2016 +0200
+
+    Use Unicode in translatable strings
+    
+    Changes "…" quotation marks to “…”.
+    
+    See https://developer.gnome.org/hig/stable/typography.html
+    
+    https://bugzilla.gnome.org/show_bug.cgi?id=772493
+
+ src/grl-multiple.c |  2 +-
+ src/grl-registry.c | 20 ++++++++++----------
+ src/grl-source.c   |  2 +-
+ 3 files changed, 12 insertions(+), 12 deletions(-)
+
+commit 8f0f3de84e6edefd42dab69158433f9a18de9f19
+Merge: 39c9d89 21986cb
+Author: Victor Toso <me@victortoso.com>
+Date:   Sat Jun 9 12:12:17 2018 +0000
+
+    Merge branch 'test_metadata' into 'master'
+    
+    Add vala bindings for multiple keys
+    
+    Closes #2
+    
+    See merge request GNOME/grilo!1
+
+commit 21986cbe53383fa202022d26e7cf9c62d8cde355
+Author: 1PunMan <saurabhsingh412@gmail.com>
+Date:   Mon May 28 14:06:21 2018 +0530
+
+    grilo: Add vala bindings for Key COMPOSER
+    
+    Currently Grilo returns an error when the Key COMPOSER
+    is used, this commit adds the binding to allow the key
+    to function properly.
+    
+    https://gitlab.gnome.org/GNOME/grilo/issues/2
+
+ bindings/vala/grilo-0.3-custom.vala | 2 ++
+ 1 file changed, 2 insertions(+)
+
+commit 972ca2c12d434a71d3a6eeb97604e9fdace3b5e4
+Author: 1PunMan <saurabhsingh412@gmail.com>
+Date:   Mon May 28 14:01:42 2018 +0530
+
+    grilo: Add vala bindings for Key ALBUM_DISC_NUMBER
+    
+    Currently Grilo returns an error when the Key ALBUM_DISC_NUMBER
+    is used, this commit adds the binding to allow the key to
+    function properly.
+    
+    https://gitlab.gnome.org/GNOME/grilo/issues/2
+
+ bindings/vala/grilo-0.3-custom.vala | 2 ++
+ 1 file changed, 2 insertions(+)
+
+commit 80746024a9c781700f2b49f4ecba653d045f0312
+Author: 1PunMan <saurabhsingh412@gmail.com>
+Date:   Sun May 20 16:12:33 2018 +0530
+
+    grilo: Add vala bindings for Key ALBUM_ARTIST
+    
+    Currently Grilo returns an error when the Key ALBUM_ARTIST
+    is used, this commit adds the binding to allow the key to
+    function properly.
+    
+    https://gitlab.gnome.org/GNOME/grilo/issues/2
+
+ bindings/vala/grilo-0.3-custom.vala | 2 ++
+ 1 file changed, 2 insertions(+)
+
+commit 39c9d89635788c76c1777e7de11c2f7b851b4835
+Author: Daniel Șerbănescu <daniel@serbanescu.dk>
+Date:   Sun Apr 8 20:01:29 2018 +0000
+
+    Add Romanian translation
+
+ po/LINGUAS |   1 +
+ po/ro.po   | 194 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 195 insertions(+)
+
+commit 005c29c63f310aff5e56df35659ebc9c78c3a3bc
+Author: Claude Paroz <claude@2xlibre.net>
+Date:   Mon Mar 26 14:39:36 2018 +0200
+
+    Add glib preset to meson i18n call
+    
+    Without that, no strings are extracted to the .pot file.
+
+ po/meson.build | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit 6d3863c0bedb46af15804932d8753bc3b5592e21
+Author: gogo <trebelnik2@gmail.com>
+Date:   Fri Mar 16 18:17:51 2018 +0000
+
+    Add Croatian translation
+
+ po/LINGUAS |   1 +
+ po/hr.po   | 194 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 195 insertions(+)
+
+commit b144fe0a105b9332e5be18a4ea224197ba5fd1b4
+Author: Anders Jonsson <anders.jonsson@norsjovallen.se>
+Date:   Mon Oct 16 22:06:18 2017 +0000
+
+    Update Swedish translation
+
+ po/sv.po | 24 +++++++++++-------------
+ 1 file changed, 11 insertions(+), 13 deletions(-)
+
+commit 59b9daf6b3f1ae76c0a884268da0662bd18f2b04
+Author: Xavi Ivars <xavi.ivars@gmail.com>
+Date:   Thu Oct 5 14:28:46 2017 +0200
+
+    [l10n] Updated Catalan (Valencian) translation
+
+ po/ca@valencia.po | 127 +++++++++++++++++++++++++++++-------------------------
+ 1 file changed, 68 insertions(+), 59 deletions(-)
+
+commit 2b2c5cf6aa46a73ff383e4eafe33760eb109b776
+Author: Christophe Fergeau <cfergeau@redhat.com>
+Date:   Mon Sep 18 11:07:14 2017 +0200
+
+    test-ui: Fix several leaks
+    
+    Fixing these leaks makes it easier to spot leaks coming from the
+    underlying libraries when running under valgrind.
+    
+    Signed-off-by: Christophe Fergeau <cfergeau@redhat.com>
+    
+    https://bugzilla.gnome.org/show_bug.cgi?id=787873
+
+ tools/grilo-test-ui/main.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+commit b333c0d3c915d22320efe87275f1cc4f23029627
+Author: Jordi Mas <jmas@softcatala.org>
+Date:   Thu Sep 7 16:17:51 2017 +0200
+
+    Update Catalan translation
+
+ po/ca.po | 120 ++++++++++++++++++++++++++++++++++-----------------------------
+ 1 file changed, 64 insertions(+), 56 deletions(-)
+
+commit 2e1c69657347cbcf8a3df92c366d769fdf8bea00
+Author: Emin Tufan Çetin <etcetin@gmail.com>
+Date:   Wed Sep 6 06:50:05 2017 +0000
+
+    Update Turkish translation
+
+ po/tr.po | 102 +++++++++++++++++++++++++++++++++------------------------------
+ 1 file changed, 53 insertions(+), 49 deletions(-)
+
+commit f24601d01cd39c9bc9f6cef032347892c2c3457c
+Author: Ask Hjorth Larsen <asklarsen@gmail.com>
+Date:   Mon Aug 28 16:19:38 2017 +0200
+
+    Updated Danish translation
+
+ po/da.po | 45 +++++++++++++++++++++++----------------------
+ 1 file changed, 23 insertions(+), 22 deletions(-)
+
+commit b56c54c3fb136189ee3aaf189fb9ea8ddeb4f8ec
+Author: Victor Toso <me@victortoso.com>
+Date:   Fri Aug 25 11:11:15 2017 +0200
+
+    Post-release version bump to 0.3.5
+
+ configure.ac | 2 +-
+ meson.build  | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+commit b773deccb84c159850cdcf73db0d8e8707f9da09
+Author: Victor Toso <me@victortoso.com>
+Date:   Thu Aug 24 17:46:42 2017 +0200
+
+    Release 0.3.4
+
+ NEWS         | 17 +++++++++++++++++
+ configure.ac |  2 +-
+ 2 files changed, 18 insertions(+), 1 deletion(-)
+
+commit f7fa152f5b697a4fcd8fc9faf9d306402a1ee928
+Author: Victor Toso <me@victortoso.com>
+Date:   Thu Aug 24 17:26:56 2017 +0200
+
+    docs: fix make distclean
+    
+    Otherwise we'll get:
+    
+    ERROR: files left in build directory after distclean:
+    ./doc/grilo/grilo-scan.o
+    ./doc/grilo/efficient-metadata-resolution.c
+    ./doc/grilo/searching.c
+    ./doc/grilo/configuring-plugins.c
+    ./doc/grilo/browsing.c
+    ./doc/grilo/multivalues.c
+
+ doc/grilo/Makefile.am | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+commit b73cf2268fd72e4b97c6900f8d99539c0cbab5e3
+Author: Pawan Chitrakar <chautari@gmail.com>
+Date:   Wed Aug 16 08:38:27 2017 +0000
+
+    Add Nepali translation
+
+ po/LINGUAS |   1 +
+ po/ne.po   | 193 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 194 insertions(+)
+
+commit 727e0c426cfbfee3163191520cb988c7cc7229a7
+Author: Rafael Fonseca <r4f4rfs@gmail.com>
+Date:   Thu Feb 4 15:10:36 2016 +0100
+
+    core: Improve warning message for non-handled related keys.
+    
+    When setting a non-handled related key, Grilo complains with the following
+    message
+    
+    Grilo-WARNING **: [data] data/grl-data.c:742: Trying to add an empty
+        GrlRelatedKeys to GrlData
+    
+    This patch improves the error reporting a bit by saying which key type is not
+    currently being handled.
+    
+    https://bugzilla.gnome.org/show_bug.cgi?id=707643
+
+ src/data/grl-related-keys.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+commit 948686dbaec8fe1d45b9b0b5983297da606c2ab7
+Author: Rafael Fonseca <r4f4rfs@gmail.com>
+Date:   Sat Jan 30 16:10:28 2016 +0100
+
+    core: Fix warning when setting a related boolean key
+    
+    When trying to set a related key for which there is no specific handle, grilo
+    complains with the following message
+    
+    Grilo-WARNING **: [data] data/grl-data.c:742: Trying to add an empty
+    GrlRelatedKeys to GrlData
+    
+    This patch makes it possible to properly set such boolean keys.
+    
+    https://bugzilla.gnome.org/show_bug.cgi?id=707643
+
+ src/data/grl-related-keys.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+commit 39d2a865200e813f5aef73b1e06a057e793333c2
+Author: Kristjan SCHMIDT <kristjan.schmidt@googlemail.com>
+Date:   Sun Jun 11 22:06:40 2017 +0200
+
+    Updated Esperanto translation
+
+ po/eo.po | 130 ++++++++++++++++++++++++++++++++++-----------------------------
+ 1 file changed, 70 insertions(+), 60 deletions(-)
+
+commit 3104a340a674429a01a41fbce8441728660077e4
+Author: Emmanuele Bassi <ebassi@gnome.org>
+Date:   Sat Mar 11 23:07:06 2017 +0000
+
+    Fix build with recent Meson
+    
+    Referencing the current source directory inside an include_directories()
+    statement is not recommended in Meson, and version 0.39, released on
+    March 5th, declares it an error.
+
+ src/meson.build | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+commit c5eac4907f9a99280064aa001485f9696f5ebe10
+Author: Jan Alexander Steffens (heftig) <jan.steffens@gmail.com>
+Date:   Thu Feb 16 01:24:48 2017 +0100
+
+    build: Improve docs and introspection
+    
+    https://bugzilla.gnome.org/show_bug.cgi?id=778612
+
+ doc/grilo/Makefile.am      | 12 ++++++++++++
+ doc/grilo/meson.build      | 10 +++++++++-
+ doc/grilo/writing-apps.xml | 10 +++++-----
+ libs/meson.build           |  2 ++
+ libs/net/meson.build       | 13 ++++---------
+ libs/pls/meson.build       |  9 ++++++---
+ src/meson.build            |  1 +
+ 7 files changed, 39 insertions(+), 18 deletions(-)
+
+commit a0f3f0be1374458328f73d89e5dbb711009a0fb7
+Author: Victor Toso <me@victortoso.com>
+Date:   Tue Feb 14 14:35:10 2017 +0100
+
+    Post-release version bump to 0.3.4
+
+ configure.ac | 2 +-
+ meson.build  | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+commit 8d04687dfa80625e655ce79fc995d7635456388b
 Author: Victor Toso <me@victortoso.com>
 Date:   Tue Feb 14 13:57:41 2017 +0100
 

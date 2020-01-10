@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Multiple: Grilo Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="Grilo Reference Manual">
 <link rel="up" href="multiple.html" title="Search in multiple sources">
 <link rel="prev" href="multiple.html" title="Search in multiple sources">
 <link rel="next" href="configure.html" title="Configuring plug-ins">
-<meta name="generator" content="GTK-Doc V1.25 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.28 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -49,7 +49,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
+<span class="returnvalue">guint</span>
 </td>
 <td class="function_name">
 <a class="link" href="grilo-Multiple.html#grl-multiple-search" title="grl_multiple_search ()">grl_multiple_search</a> <span class="c_punctuation">()</span>
@@ -57,7 +57,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/glibglib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *
+<span class="returnvalue">GList</span> *
 </td>
 <td class="function_name">
 <a class="link" href="grilo-Multiple.html#grl-multiple-search-sync" title="grl_multiple_search_sync ()">grl_multiple_search_sync</a> <span class="c_punctuation">()</span>
@@ -76,7 +76,7 @@
 <p>These helper functions are due to ease the search in multiple sources.
 You can specify the list of sources to use for the searching. Those sources
 must have enabled the search capability.</p>
-<p>Also you can set <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> that sources list, so the function will use all
+<p>Also you can set <code class="literal">NULL</code> that sources list, so the function will use all
 the available sources with the search capability.</p>
 </div>
 <div class="refsect1">
@@ -84,11 +84,11 @@ the available sources with the search capability.</p>
 <div class="refsect2">
 <a name="grl-multiple-get-media-from-uri"></a><h3>grl_multiple_get_media_from_uri ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>
-grl_multiple_get_media_from_uri (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *uri</code></em>,
-                                 <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glibglib-Doubly-Linked-Lists.html#GList"><span class="type">GList</span></a> *keys</code></em>,
+grl_multiple_get_media_from_uri (<em class="parameter"><code>const <span class="type">gchar</span> *uri</code></em>,
+                                 <em class="parameter"><code>const <span class="type">GList</span> *keys</code></em>,
                                  <em class="parameter"><code><a class="link" href="GrlOperationOptions.html" title="GrlOperationOptions"><span class="type">GrlOperationOptions</span></a> *options</code></em>,
                                  <em class="parameter"><code><a class="link" href="GrlSource.html#GrlSourceResolveCb" title="GrlSourceResolveCb ()"><span class="type">GrlSourceResolveCb</span></a> callback</code></em>,
-                                 <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                                 <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
 <p>Goes though all available media sources until it finds one capable of
 constructing a GrlMedia object representing the media resource exposed
 by <em class="parameter"><code>uri</code></em>
@@ -110,7 +110,7 @@ by <em class="parameter"><code>uri</code></em>
 </tr>
 <tr>
 <td class="parameter_name"><p>keys</p></td>
-<td class="parameter_description"><p> List of metadata keys we want to obtain. </p></td>
+<td class="parameter_description"><p>List of metadata keys we want to obtain. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GrlKeyID]</span></td>
 </tr>
 <tr>
@@ -120,7 +120,7 @@ by <em class="parameter"><code>uri</code></em>
 </tr>
 <tr>
 <td class="parameter_name"><p>callback</p></td>
-<td class="parameter_description"><p> the user defined callback. </p></td>
+<td class="parameter_description"><p>the user defined callback. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span></td>
 </tr>
 <tr>
@@ -136,13 +136,13 @@ by <em class="parameter"><code>uri</code></em>
 <hr>
 <div class="refsect2">
 <a name="grl-multiple-search"></a><h3>grl_multiple_search ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
-grl_multiple_search (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glibglib-Doubly-Linked-Lists.html#GList"><span class="type">GList</span></a> *sources</code></em>,
-                     <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *text</code></em>,
-                     <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glibglib-Doubly-Linked-Lists.html#GList"><span class="type">GList</span></a> *keys</code></em>,
+<pre class="programlisting"><span class="returnvalue">guint</span>
+grl_multiple_search (<em class="parameter"><code>const <span class="type">GList</span> *sources</code></em>,
+                     <em class="parameter"><code>const <span class="type">gchar</span> *text</code></em>,
+                     <em class="parameter"><code>const <span class="type">GList</span> *keys</code></em>,
                      <em class="parameter"><code><a class="link" href="GrlOperationOptions.html" title="GrlOperationOptions"><span class="type">GrlOperationOptions</span></a> *options</code></em>,
                      <em class="parameter"><code><a class="link" href="GrlSource.html#GrlSourceResultCb" title="GrlSourceResultCb ()"><span class="type">GrlSourceResultCb</span></a> callback</code></em>,
-                     <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                     <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
 <p>Search for <em class="parameter"><code>text</code></em>
  in all the sources specified in <em class="parameter"><code>sources</code></em>
 .</p>
@@ -162,7 +162,7 @@ plugin (see <a class="link" href="GrlSource.html#grl-source-search" title="grl_s
 <tbody>
 <tr>
 <td class="parameter_name"><p>sources</p></td>
-<td class="parameter_description"><p>a <a href="/usr/share/gtk-doc/html/glibglib-Doubly-Linked-Lists.html#GList"><span class="type">GList</span></a> of <a class="link" href="GrlSource.html" title="GrlSource"><span class="type">GrlSource</span></a>s to search from (<a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> for all
+<td class="parameter_description"><p>a <span class="type">GList</span> of <a class="link" href="GrlSource.html" title="GrlSource"><span class="type">GrlSource</span></a>s to search from (<code class="literal">NULL</code> for all
 searchable sources). </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GrlSource][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
@@ -173,7 +173,7 @@ searchable sources). </p></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>keys</p></td>
-<td class="parameter_description"><p> the <a href="/usr/share/gtk-doc/html/glibglib-Doubly-Linked-Lists.html#GList"><span class="type">GList</span></a> of
+<td class="parameter_description"><p>the <span class="type">GList</span> of
 <a class="link" href="grilo-grl-metadata-key.html#GrlKeyID" title="GrlKeyID"><span class="type">GrlKeyID</span></a> to retrieve. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GrlKeyID]</span></td>
 </tr>
@@ -184,7 +184,7 @@ searchable sources). </p></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>callback</p></td>
-<td class="parameter_description"><p> the user defined callback. </p></td>
+<td class="parameter_description"><p>the user defined callback. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span></td>
 </tr>
 <tr>
@@ -204,12 +204,12 @@ searchable sources). </p></td>
 <hr>
 <div class="refsect2">
 <a name="grl-multiple-search-sync"></a><h3>grl_multiple_search_sync ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glibglib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *
-grl_multiple_search_sync (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glibglib-Doubly-Linked-Lists.html#GList"><span class="type">GList</span></a> *sources</code></em>,
-                          <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *text</code></em>,
-                          <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glibglib-Doubly-Linked-Lists.html#GList"><span class="type">GList</span></a> *keys</code></em>,
+<pre class="programlisting"><span class="returnvalue">GList</span> *
+grl_multiple_search_sync (<em class="parameter"><code>const <span class="type">GList</span> *sources</code></em>,
+                          <em class="parameter"><code>const <span class="type">gchar</span> *text</code></em>,
+                          <em class="parameter"><code>const <span class="type">GList</span> *keys</code></em>,
                           <em class="parameter"><code><a class="link" href="GrlOperationOptions.html" title="GrlOperationOptions"><span class="type">GrlOperationOptions</span></a> *options</code></em>,
-                          <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glibglib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                          <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Search for <em class="parameter"><code>text</code></em>
  in all the sources specified in <em class="parameter"><code>sources</code></em>
 .</p>
@@ -225,7 +225,7 @@ grl_multiple_search_sync (<em class="parameter"><code>const <a href="/usr/share/
 <tbody>
 <tr>
 <td class="parameter_name"><p>sources</p></td>
-<td class="parameter_description"><p>a <a href="/usr/share/gtk-doc/html/glibglib-Doubly-Linked-Lists.html#GList"><span class="type">GList</span></a> of <a class="link" href="GrlSource.html" title="GrlSource"><span class="type">GrlSource</span></a>s where to search from (<a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> for all
+<td class="parameter_description"><p>a <span class="type">GList</span> of <a class="link" href="GrlSource.html" title="GrlSource"><span class="type">GrlSource</span></a>s where to search from (<code class="literal">NULL</code> for all
 available sources with search capability). </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GrlSource][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
@@ -236,7 +236,7 @@ available sources with search capability). </p></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>keys</p></td>
-<td class="parameter_description"><p> the <a href="/usr/share/gtk-doc/html/glibglib-Doubly-Linked-Lists.html#GList"><span class="type">GList</span></a> of
+<td class="parameter_description"><p>the <span class="type">GList</span> of
 <a class="link" href="grilo-grl-metadata-key.html#GrlKeyID" title="GrlKeyID"><span class="type">GrlKeyID</span></a> to retrieve. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GrlKeyID]</span></td>
 </tr>
@@ -247,7 +247,7 @@ available sources with search capability). </p></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>error</p></td>
-<td class="parameter_description"><p>a <a href="/usr/share/gtk-doc/html/glibglib-Error-Reporting.html#GError"><span class="type">GError</span></a>, or <em class="parameter"><code>NULL</code></em>
+<td class="parameter_description"><p>a <span class="type">GError</span>, or <em class="parameter"><code>NULL</code></em>
 </p></td>
 <td class="parameter_annotations"> </td>
 </tr>
@@ -256,7 +256,7 @@ available sources with search capability). </p></td>
 </div>
 <div class="refsect3">
 <a name="grl-multiple-search-sync.returns"></a><h4>Returns</h4>
-<p> a list with <a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type">GrlMedia</span></a> elements. </p>
+<p>a list with <a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type">GrlMedia</span></a> elements. </p>
 <p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GrlMedia][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 0.2.0</p>
@@ -271,6 +271,6 @@ available sources with search capability). </p></td>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.25</div>
+<hr>Generated by GTK-Doc V1.28</div>
 </body>
 </html>

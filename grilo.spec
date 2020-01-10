@@ -2,7 +2,7 @@
 %define release_version %(echo %{version} | awk -F. '{print $1"."$2}')
 
 Name:           grilo
-Version:        0.3.3
+Version:        0.3.6
 Release:        1%{?dist}
 Summary:        Content discovery framework
 
@@ -102,6 +102,15 @@ rm -f $RPM_BUILD_ROOT%{_bindir}/grilo-simple-playlist
 %{_datadir}/vala/
 
 %changelog
+* Wed Aug 01 2018 Kalev Lember <klember@redhat.com> - 0.3.6-1
+- Update to 0.3.6
+- Resolves: #1569962
+
+* Thu Aug 24 2017 Bastien Nocera <bnocera@redhat.com> - 0.3.4-1
++ grilo-0.3.4-1
+- Update to 0.3.4
+- Resolves: #1569962
+
 * Tue Feb 14 2017 Kalev Lember <klember@redhat.com> - 0.3.3-1
 - Update to 0.3.3
 - Resolves: #1386974

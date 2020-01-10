@@ -3,12 +3,12 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>GrlPls: Grilo Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.79.1">
+<meta name="generator" content="DocBook XSL Stylesheets Vsnapshot">
 <link rel="home" href="index.html" title="Grilo Reference Manual">
 <link rel="up" href="grilo-pls.html" title="Grilo Playlist Functions">
 <link rel="prev" href="grilo-pls.html" title="Grilo Playlist Functions">
 <link rel="next" href="api-index-full.html" title="API Index">
-<meta name="generator" content="GTK-Doc V1.25 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.28 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
@@ -49,7 +49,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+<span class="returnvalue">gboolean</span>
 </td>
 <td class="function_name">
 <a class="link" href="grilo-GrlPls.html#grl-pls-media-is-playlist" title="grl_pls_media_is_playlist ()">grl_pls_media_is_playlist</a> <span class="c_punctuation">()</span>
@@ -57,7 +57,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
+<span class="returnvalue">guint</span>
 </td>
 <td class="function_name">
 <a class="link" href="grilo-GrlPls.html#grl-pls-browse" title="grl_pls_browse ()">grl_pls_browse</a> <span class="c_punctuation">()</span>
@@ -65,7 +65,7 @@
 </tr>
 <tr>
 <td class="function_type">
-<a href="/usr/share/gtk-doc/html/glibglib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *
+<span class="returnvalue">GList</span> *
 </td>
 <td class="function_name">
 <a class="link" href="grilo-GrlPls.html#grl-pls-browse-sync" title="grl_pls_browse_sync ()">grl_pls_browse_sync</a> <span class="c_punctuation">()</span>
@@ -115,12 +115,12 @@ exposing playlist entries as GrlMedia objects.</p>
 <pre class="programlisting"><a class="link" href="GrlMedia.html" title="GrlMedia"><span class="returnvalue">GrlMedia</span></a> *
 <span class="c_punctuation">(</span>*GrlPlsFilterFunc<span class="c_punctuation">)</span> (<em class="parameter"><code><a class="link" href="GrlSource.html" title="GrlSource"><span class="type">GrlSource</span></a> *source</code></em>,
                      <em class="parameter"><code><a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type">GrlMedia</span></a> *media</code></em>,
-                     <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                     <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
 <p>Callback type to filter, or modify <a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type">GrlMedia</span></a> created
 when parsing a playlist using one of <a class="link" href="grilo-GrlPls.html#grl-pls-browse" title="grl_pls_browse ()"><code class="function">grl_pls_browse()</code></a>,
 <a class="link" href="grilo-GrlPls.html#grl-pls-browse-sync" title="grl_pls_browse_sync ()"><code class="function">grl_pls_browse_sync()</code></a> or <a class="link" href="grilo-GrlPls.html#grl-pls-browse-by-spec" title="grl_pls_browse_by_spec ()"><code class="function">grl_pls_browse_by_spec()</code></a>.</p>
 <p>The callback is responsible for unreffing <em class="parameter"><code>media</code></em>
- when returning <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> or
+ when returning <code class="literal">NULL</code> or
 another <a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type">GrlMedia</span></a>.</p>
 <div class="refsect3">
 <a name="GrlPlsFilterFunc.parameters"></a><h4>Parameters</h4>
@@ -138,7 +138,7 @@ another <a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type"
 </tr>
 <tr>
 <td class="parameter_name"><p>media</p></td>
-<td class="parameter_description"><p> a <a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type">GrlMedia</span></a> to operate on. </p></td>
+<td class="parameter_description"><p>a <a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type">GrlMedia</span></a> to operate on. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></td>
 </tr>
 <tr>
@@ -151,7 +151,7 @@ another <a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type"
 </div>
 <div class="refsect3">
 <a name="GrlPlsFilterFunc.returns"></a><h4>Returns</h4>
-<p> <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to not add this entry to the results,
+<p><code class="literal">NULL</code> to not add this entry to the results,
 or a new <a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type">GrlMedia</span></a> populated with metadata of your choice. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -159,7 +159,7 @@ or a new <a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type
 <hr>
 <div class="refsect2">
 <a name="grl-pls-media-is-playlist"></a><h3>grl_pls_media_is_playlist ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>
 grl_pls_media_is_playlist (<em class="parameter"><code><a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type">GrlMedia</span></a> *media</code></em>);</pre>
 <p>Check if a file identified by GrlMedia object is a playlist or not.
 This function does blocking I/O.</p>
@@ -180,21 +180,21 @@ This function does blocking I/O.</p>
 </div>
 <div class="refsect3">
 <a name="grl-pls-media-is-playlist.returns"></a><h4>Returns</h4>
-<p> <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if a GrlMedia is recognized as a playlist.</p>
+<p> <code class="literal">TRUE</code> if a GrlMedia is recognized as a playlist.</p>
 </div>
 <p class="since">Since: 0.2.0</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="grl-pls-browse"></a><h3>grl_pls_browse ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>
+<pre class="programlisting"><span class="returnvalue">guint</span>
 grl_pls_browse (<em class="parameter"><code><a class="link" href="GrlSource.html" title="GrlSource"><span class="type">GrlSource</span></a> *source</code></em>,
                 <em class="parameter"><code><a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type">GrlMedia</span></a> *playlist</code></em>,
-                <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glibglib-Doubly-Linked-Lists.html#GList"><span class="type">GList</span></a> *keys</code></em>,
+                <em class="parameter"><code>const <span class="type">GList</span> *keys</code></em>,
                 <em class="parameter"><code><a class="link" href="GrlOperationOptions.html" title="GrlOperationOptions"><span class="type">GrlOperationOptions</span></a> *options</code></em>,
                 <em class="parameter"><code><a class="link" href="grilo-GrlPls.html#GrlPlsFilterFunc" title="GrlPlsFilterFunc ()"><span class="type">GrlPlsFilterFunc</span></a> filter_func</code></em>,
                 <em class="parameter"><code><a class="link" href="GrlSource.html#GrlSourceResultCb" title="GrlSourceResultCb ()"><span class="type">GrlSourceResultCb</span></a> callback</code></em>,
-                <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
 <p>Browse into a playlist. The playlist entries are
 returned via the <em class="parameter"><code>callback</code></em>
  function as GrlMedia objects.
@@ -227,7 +227,7 @@ and sample code.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>keys</p></td>
-<td class="parameter_description"><p> the <a href="/usr/share/gtk-doc/html/glibglib-Doubly-Linked-Lists.html#GList"><span class="type">GList</span></a> of
+<td class="parameter_description"><p>the <span class="type">GList</span> of
 <a class="link" href="grilo-grl-metadata-key.html#GrlKeyID" title="GrlKeyID"><span class="type">GrlKeyID</span></a>s to request. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GrlKeyID]</span></td>
 </tr>
@@ -238,12 +238,12 @@ and sample code.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>filter_func</p></td>
-<td class="parameter_description"><p> A filter function, or <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p></td>
+<td class="parameter_description"><p>A filter function, or <code class="literal">NULL</code>. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid until first called."><span class="acronym">scope async</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>callback</p></td>
-<td class="parameter_description"><p> the user defined callback. </p></td>
+<td class="parameter_description"><p>the user defined callback. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>]</span></td>
 </tr>
 <tr>
@@ -263,13 +263,13 @@ and sample code.</p>
 <hr>
 <div class="refsect2">
 <a name="grl-pls-browse-sync"></a><h3>grl_pls_browse_sync ()</h3>
-<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glibglib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *
+<pre class="programlisting"><span class="returnvalue">GList</span> *
 grl_pls_browse_sync (<em class="parameter"><code><a class="link" href="GrlSource.html" title="GrlSource"><span class="type">GrlSource</span></a> *source</code></em>,
                      <em class="parameter"><code><a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type">GrlMedia</span></a> *playlist</code></em>,
-                     <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glibglib-Doubly-Linked-Lists.html#GList"><span class="type">GList</span></a> *keys</code></em>,
+                     <em class="parameter"><code>const <span class="type">GList</span> *keys</code></em>,
                      <em class="parameter"><code><a class="link" href="GrlOperationOptions.html" title="GrlOperationOptions"><span class="type">GrlOperationOptions</span></a> *options</code></em>,
                      <em class="parameter"><code><a class="link" href="grilo-GrlPls.html#GrlPlsFilterFunc" title="GrlPlsFilterFunc ()"><span class="type">GrlPlsFilterFunc</span></a> filter_func</code></em>,
-                     <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glibglib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                     <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>Browse into a playlist. The playlist entries are
 returned via the <em class="parameter"><code>callback</code></em>
  function as GrlMedia objects.
@@ -279,7 +279,7 @@ This function imitates the API and way of working of
  will be used for plugins
 or applications to be able to refuse particular entries from
 being listed.</p>
-<p>If a <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> filter function is passed, the media will be added
+<p>If a <code class="literal">NULL</code> filter function is passed, the media will be added
 with only the metadata coming from the playlist included.</p>
 <p>This function is synchronous.</p>
 <p>See <a class="link" href="GrlSource.html#grl-source-browse-sync" title="grl_source_browse_sync ()"><code class="function">grl_source_browse_sync()</code></a> function for additional information
@@ -305,13 +305,13 @@ and sample code.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>keys</p></td>
-<td class="parameter_description"><p> the <a href="/usr/share/gtk-doc/html/glibglib-Doubly-Linked-Lists.html#GList"><span class="type">GList</span></a> of
+<td class="parameter_description"><p>the <span class="type">GList</span> of
 <a class="link" href="grilo-grl-metadata-key.html#GrlKeyID" title="GrlKeyID"><span class="type">GrlKeyID</span></a>s to request. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GrlKeyID]</span></td>
 </tr>
 <tr>
 <td class="parameter_name"><p>filter_func</p></td>
-<td class="parameter_description"><p> A filter function, or <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p></td>
+<td class="parameter_description"><p>A filter function, or <code class="literal">NULL</code>. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid until first called."><span class="acronym">scope async</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 <tr>
@@ -321,7 +321,7 @@ and sample code.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>error</p></td>
-<td class="parameter_description"><p>a <a href="/usr/share/gtk-doc/html/glibglib-Error-Reporting.html#GError"><span class="type">GError</span></a>, or <em class="parameter"><code>NULL</code></em>
+<td class="parameter_description"><p>a <span class="type">GError</span>, or <em class="parameter"><code>NULL</code></em>
 </p></td>
 <td class="parameter_annotations"> </td>
 </tr>
@@ -330,8 +330,8 @@ and sample code.</p>
 </div>
 <div class="refsect3">
 <a name="grl-pls-browse-sync.returns"></a><h4>Returns</h4>
-<p> a <a href="/usr/share/gtk-doc/html/glibglib-Doubly-Linked-Lists.html#GList"><span class="type">GList</span></a> with <a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type">GrlMedia</span></a>
-elements. After use <a href="/usr/share/gtk-doc/html/gobjectgobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> every element and <a href="/usr/share/gtk-doc/html/glibglib-Doubly-Linked-Lists.html#g-list-free"><code class="function">g_list_free()</code></a> the
+<p>a <span class="type">GList</span> with <a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type">GrlMedia</span></a>
+elements. After use <code class="function">g_object_unref()</code> every element and <code class="function">g_list_free()</code> the
 list. </p>
 <p><span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> Grl.Media][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
@@ -369,7 +369,7 @@ information and sample code.</p>
 </tr>
 <tr>
 <td class="parameter_name"><p>filter_func</p></td>
-<td class="parameter_description"><p> A filter function, or <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. </p></td>
+<td class="parameter_description"><p>A filter function, or <code class="literal">NULL</code>. </p></td>
 <td class="parameter_annotations"><span class="annotation">[<acronym title="The callback is valid until first called."><span class="acronym">scope async</span></acronym>][<acronym title="NULL is OK, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span></td>
 </tr>
 <tr>
@@ -387,16 +387,16 @@ information and sample code.</p>
 <a name="grl-pls-file-to-media"></a><h3>grl_pls_file_to_media ()</h3>
 <pre class="programlisting"><a class="link" href="GrlMedia.html" title="GrlMedia"><span class="returnvalue">GrlMedia</span></a> *
 grl_pls_file_to_media (<em class="parameter"><code><a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type">GrlMedia</span></a> *content</code></em>,
-                       <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gioGFile.html#GFile-struct"><span class="type">GFile</span></a> *file</code></em>,
-                       <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gioGFileInfo.html#GFileInfo-struct"><span class="type">GFileInfo</span></a> *info</code></em>,
-                       <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glibglib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> handle_pls</code></em>,
+                       <em class="parameter"><code><span class="type">GFile</span> *file</code></em>,
+                       <em class="parameter"><code><span class="type">GFileInfo</span> *info</code></em>,
+                       <em class="parameter"><code><span class="type">gboolean</span> handle_pls</code></em>,
                        <em class="parameter"><code><a class="link" href="GrlOperationOptions.html" title="GrlOperationOptions"><span class="type">GrlOperationOptions</span></a> *options</code></em>);</pre>
 <p>This function will update (if <em class="parameter"><code>content</code></em>
- is non-<a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>) or create a
+ is non-<code class="literal">NULL</code>) or create a
 GrlMedia and populate it with information from <em class="parameter"><code>info</code></em>
 .</p>
 <p>If <em class="parameter"><code>info</code></em>
- is <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, a call to <a href="/usr/share/gtk-doc/html/gioGFile.html#g-file-query-info"><code class="function">g_file_query_info()</code></a> will be made.</p>
+ is <code class="literal">NULL</code>, a call to <code class="function">g_file_query_info()</code> will be made.</p>
 <p>This function is useful for plugins that browse the local filesystem
 and want to easily create GrlMedia from filesystem information.</p>
 <div class="refsect3">
@@ -410,17 +410,17 @@ and want to easily create GrlMedia from filesystem information.</p>
 <tbody>
 <tr>
 <td class="parameter_name"><p>content</p></td>
-<td class="parameter_description"><p>an existing <a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type">GrlMedia</span></a> for the file, or <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a></p></td>
+<td class="parameter_description"><p>an existing <a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type">GrlMedia</span></a> for the file, or <code class="literal">NULL</code></p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 <tr>
 <td class="parameter_name"><p>file</p></td>
-<td class="parameter_description"><p>a <a href="/usr/share/gtk-doc/html/gioGFile.html#GFile-struct"><span class="type">GFile</span></a> pointing to the file or directory in question</p></td>
+<td class="parameter_description"><p>a <span class="type">GFile</span> pointing to the file or directory in question</p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 <tr>
 <td class="parameter_name"><p>info</p></td>
-<td class="parameter_description"><p>an existing <a href="/usr/share/gtk-doc/html/gioGFileInfo.html#GFileInfo-struct"><span class="type">GFileInfo</span></a>, or <a href="/usr/share/gtk-doc/html/glibglib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a></p></td>
+<td class="parameter_description"><p>an existing <span class="type">GFileInfo</span>, or <code class="literal">NULL</code></p></td>
 <td class="parameter_annotations"> </td>
 </tr>
 <tr>
@@ -439,7 +439,7 @@ to this operation.</p></td>
 </div>
 <div class="refsect3">
 <a name="grl-pls-file-to-media.returns"></a><h4>Returns</h4>
-<p> a new <a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type">GrlMedia</span></a>. </p>
+<p>a new <a class="link" href="GrlMedia.html" title="GrlMedia"><span class="type">GrlMedia</span></a>. </p>
 <p><span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span></p>
 </div>
 <p class="since">Since: 0.2.0</p>
@@ -450,12 +450,12 @@ to this operation.</p></td>
 <pre class="programlisting">const <span class="returnvalue">char</span> *
 grl_pls_get_file_attributes (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>Returns the list of attributes to pass to
-<a href="/usr/share/gtk-doc/html/gioGFile.html#g-file-query-info"><code class="function">g_file_query_info()</code></a> to make it possible to
+<code class="function">g_file_query_info()</code> to make it possible to
 populate a GrlMedia using <a class="link" href="grilo-GrlPls.html#grl-pls-file-to-media" title="grl_pls_file_to_media ()"><code class="function">grl_pls_file_to_media()</code></a>.</p>
 <p>Do not free the result of this function.</p>
 <div class="refsect3">
 <a name="grl-pls-get-file-attributes.returns"></a><h4>Returns</h4>
-<p> a string containing the
+<p>a string containing the
 list of attributes. </p>
 <p><span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span></p>
 </div>
@@ -467,6 +467,6 @@ list of attributes. </p>
 </div>
 </div>
 <div class="footer">
-<hr>Generated by GTK-Doc V1.25</div>
+<hr>Generated by GTK-Doc V1.28</div>
 </body>
 </html>
