@@ -2,8 +2,8 @@
 %define release_version %(echo %{version} | awk -F. '{print $1"."$2}')
 
 Name:           grilo
-Version:        0.2.12
-Release:        2%{?dist}
+Version:        0.2.6
+Release:        3%{?dist}
 Summary:        Content discovery framework
 
 Group:          Applications/Multimedia
@@ -19,17 +19,10 @@ BuildRequires:  gtk-doc
 BuildRequires:  gobject-introspection-devel >= 0.9.0
 BuildRequires:  libxml2-devel
 BuildRequires:  libsoup-devel
-BuildRequires:  glib2-devel
 # For the test UI
 BuildRequires:  gtk3-devel
-BuildRequires:  liboauth-devel
-BuildRequires:  totem-pl-parser-devel
 
 Requires:       gobject-introspection
-
-BuildRequires:  autoconf automake libtool gnome-common
-Patch0:         grilo-0.2.12-vala-revert.patch
-Patch1:         grilo-0.2.12-pre.patch
 
 %description
 Grilo is a framework that provides access to different sources of
@@ -63,17 +56,12 @@ This package contains the Vala language bindings.
 
 %prep
 %setup -q
-%patch0 -p1 -b .vala-revert
-%patch1 -p1 -b .bug-fixes
 
 %build
-autoreconf -f
 %configure                      \
         --enable-vala           \
-        --enable-gtk-doc        \
         --enable-introspection  \
         --enable-grl-net        \
-        --disable-debug          \
         --disable-tests
 
 make %{?_smp_mflags}
@@ -85,15 +73,16 @@ mkdir -p $RPM_BUILD_ROOT%{_datadir}/grilo-%{release_version}/plugins/
 
 # Remove rpath
 chrpath --delete $RPM_BUILD_ROOT%{_bindir}/grl-inspect-%{release_version}
-chrpath --delete $RPM_BUILD_ROOT%{_bindir}/grl-launch-%{release_version}
 chrpath --delete $RPM_BUILD_ROOT%{_bindir}/grilo-test-ui-%{release_version}
 chrpath --delete $RPM_BUILD_ROOT%{_libdir}/libgrlnet-%{release_version}.so.*
-chrpath --delete $RPM_BUILD_ROOT%{_libdir}/libgrlpls-%{release_version}.so
 
 # Remove files that will not be packaged
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.la
 rm -f $RPM_BUILD_ROOT%{_libdir}/*.a
 rm -f $RPM_BUILD_ROOT%{_bindir}/grilo-simple-playlist
+
+install -d -m 0755 $RPM_BUILD_ROOT%{_datadir}/gtk-doc/html/grilo/
+install -m 0644 doc/grilo/html/* $RPM_BUILD_ROOT%{_datadir}/gtk-doc/html/grilo/
 
 %find_lang grilo
 
@@ -106,11 +95,10 @@ rm -f $RPM_BUILD_ROOT%{_bindir}/grilo-simple-playlist
 %{_libdir}/*.so.*
 %{_libdir}/girepository-1.0/*.typelib
 %{_bindir}/grl-inspect-%{release_version}
-%{_bindir}/grl-launch-%{release_version}
 %{_bindir}/grilo-test-ui-%{release_version}
 %{_libdir}/grilo-%{release_version}/
 %{_datadir}/grilo-%{release_version}/plugins/
-%{_mandir}/man1/*.1.gz
+%{_mandir}/man1/grl-inspect.1.gz
 
 %files devel
 %doc AUTHORS COPYING NEWS README TODO
@@ -125,25 +113,6 @@ rm -f $RPM_BUILD_ROOT%{_bindir}/grilo-simple-playlist
 %{_datadir}/vala/vapi/*
 
 %changelog
-* Tue May 12 2015 Bastien Nocera <bnocera@redhat.com> 0.2.12-2
-- Rebuild for newer totem-pl-parser
-Related: #1174535
-
-* Mon May 04 2015 Bastien Nocera <bnocera@redhat.com> 0.2.12-1
-- Update to 0.2.12
-- Remove the vala changes that require a newer Vala
-Resolves: #1174535
-
-* Thu Mar 19 2015 Richard Hughes <rhughes@redhat.com> - 0.2.11-1
-- Update to 0.2.11
-- Resolves: #1174535
-
-* Fri Jan 24 2014 Daniel Mach <dmach@redhat.com> - 0.2.6-5
-- Mass rebuild 2014-01-24
-
-* Fri Dec 27 2013 Daniel Mach <dmach@redhat.com> - 0.2.6-4
-- Mass rebuild 2013-12-27
-
 * Thu Nov 07 2013 Bastien Nocera <bnocera@redhat.com> 0.2.6-3
 - Work-around multi-lib differences in gtk-doc docs
 Resolves: #884020

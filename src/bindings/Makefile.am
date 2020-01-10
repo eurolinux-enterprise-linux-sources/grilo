@@ -1,3 +1,5 @@
-SUBDIRS = vala
+SUBDIRS =
 
--include $(top_srcdir)/git.mk
+if HAVE_VALA
+SUBDIRS += vala
+endif

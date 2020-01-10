@@ -67,4 +67,5 @@ test-report perf-report full-report:	${TEST_PROGS}
 # run make test as part of make check
 check-local: test
 
--include $(top_srcdir)/git.mk
+MAINTAINERCLEANFILES = \
+	Makefile.in

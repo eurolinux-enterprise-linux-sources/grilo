@@ -36,7 +36,6 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include <gio/gio.h>
 
 /* Macros */
 
@@ -92,7 +91,7 @@ struct _GrlSource {
  * @GRL_OP_REMOVE: Remove content from a service.
  * @GRL_OP_MEDIA_FROM_URI: Create a #GrlMedia instance from an URI
  * representing a media resource.
- * @GRL_OP_NOTIFY_CHANGE: Notify about changes in the #GrlSource.
+ * @GRL_OP_NOTIFY_CHANGE: Notify about changes in the #GrlMediaSource.
  *
  * Bitwise flags which reflect the kind of operations that a
  * #GrlSource supports.
@@ -133,7 +132,7 @@ typedef enum {
  * @operation_id: operation identifier
  * @media: (transfer full): a data transfer object
  * @user_data: user data passed to grl_source_resolve()
- * @error: (nullable): possible #GError generated at processing
+ * @error: (type uint): possible #GError generated at processing
  *
  * Prototype for the callback passed to grl_source_resolve()
  */
@@ -147,11 +146,11 @@ typedef void (*GrlSourceResolveCb) (GrlSource *source,
  * GrlSourceResultCb:
  * @source: a source
  * @operation_id: operation identifier
- * @media: (nullable) (transfer full): a data transfer object
+ * @media: (transfer full): a data transfer object
  * @remaining: the number of remaining #GrlMedia to process, or
  * GRL_SOURCE_REMAINING_UNKNOWN if it is unknown
  * @user_data: user data passed to the used method
- * @error: (nullable): possible #GError generated at processing
+ * @error: (type uint): possible #GError generated at processing
  *
  * Prototype for the callback passed to the media sources' methods
  */
@@ -167,7 +166,7 @@ typedef void (*GrlSourceResultCb) (GrlSource *source,
  * @source: a source
  * @media: (transfer full): a data transfer object
  * @user_data: user data passed to grl_source_remove()
- * @error: (nullable): possible #GError generated at processing
+ * @error: (type uint): possible #GError generated at processing
  *
  * Prototype for the callback passed to grl_source_remove()
  */
@@ -183,7 +182,7 @@ typedef void (*GrlSourceRemoveCb) (GrlSource *source,
  * @failed_keys: (element-type GrlKeyID) (transfer none): #GList of
  * keys that could not be updated, if any
  * @user_data: user data
- * @error: (nullable): possible #GError generated
+ * @error: (type uint): possible #GError generated
  *
  * Prototype for the callback passed to grl_source_store_foo functions
  */
@@ -456,7 +455,7 @@ struct _GrlSourceClass {
 
   void (*query) (GrlSource *source, GrlSourceQuerySpec *qs);
 
-  void (*remove) (GrlSource *source, GrlSourceRemoveSpec *rs);
+  void (*remove) (GrlSource *source, GrlSourceRemoveSpec *ss);
 
   void (*store) (GrlSource *source, GrlSourceStoreSpec *ss);
 
@@ -623,8 +622,6 @@ const gchar *grl_source_get_id (GrlSource *source);
 
 const gchar *grl_source_get_name (GrlSource *source);
 
-GIcon *grl_source_get_icon (GrlSource *source);
-
 const gchar *grl_source_get_description (GrlSource *source);
 
 GrlPlugin *grl_source_get_plugin (GrlSource *source);
@@ -632,8 +629,6 @@ GrlPlugin *grl_source_get_plugin (GrlSource *source);
 gint grl_source_get_rank (GrlSource *source);
 
 GrlMediaType grl_source_get_supported_media (GrlSource *source);
-
-const char ** grl_source_get_tags (GrlSource *source);
 
 G_END_DECLS
 

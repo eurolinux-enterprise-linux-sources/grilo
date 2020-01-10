@@ -34,6 +34,7 @@
 #include "grl-media-image.h"
 
 
+static void grl_media_image_dispose (GObject *object);
 static void grl_media_image_finalize (GObject *object);
 
 G_DEFINE_TYPE (GrlMediaImage, grl_media_image, GRL_TYPE_MEDIA);
@@ -43,12 +44,19 @@ grl_media_image_class_init (GrlMediaImageClass *klass)
 {
   GObjectClass *gobject_class = (GObjectClass *)klass;
 
+  gobject_class->dispose = grl_media_image_dispose;
   gobject_class->finalize = grl_media_image_finalize;
 }
 
 static void
 grl_media_image_init (GrlMediaImage *self)
 {
+}
+
+static void
+grl_media_image_dispose (GObject *object)
+{
+  G_OBJECT_CLASS (grl_media_image_parent_class)->dispose (object);
 }
 
 static void
@@ -89,8 +97,6 @@ grl_media_image_set_size (GrlMediaImage *image,
                           gint width,
                           gint height)
 {
-  g_return_if_fail (GRL_IS_MEDIA_IMAGE (image));
-
   grl_media_image_set_width (image, width);
   grl_media_image_set_height (image, height);
 }
@@ -148,11 +154,7 @@ grl_media_image_set_url_data (GrlMediaImage *image,
                               gint width,
                               gint height)
 {
-  GrlRelatedKeys *relkeys;
-
-  g_return_if_fail (GRL_IS_MEDIA_IMAGE (image));
-
-  relkeys = grl_related_keys_new ();
+  GrlRelatedKeys *relkeys = grl_related_keys_new ();
   grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_URL, url);
   grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_MIME, mime);
   if (width >= 0) {
@@ -184,11 +186,7 @@ grl_media_image_add_url_data (GrlMediaImage *image,
                               gint width,
                               gint height)
 {
-  GrlRelatedKeys *relkeys;
-
-  g_return_if_fail (GRL_IS_MEDIA_IMAGE (image));
-
-  relkeys = grl_related_keys_new ();
+  GrlRelatedKeys *relkeys = grl_related_keys_new ();
   grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_URL, url);
   grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_MIME, mime);
   if (width >= 0) {
@@ -268,11 +266,7 @@ grl_media_image_get_url_data_nth (GrlMediaImage *image,
                                   gint *width,
                                   gint *height)
 {
-  GrlRelatedKeys *relkeys;
-
-  g_return_val_if_fail (GRL_IS_MEDIA_IMAGE (image), NULL);
-
-  relkeys =
+  GrlRelatedKeys *relkeys =
     grl_data_get_related_keys (GRL_DATA (image), GRL_METADATA_KEY_URL, index);
 
   if (!relkeys) {

@@ -48,10 +48,8 @@ grl_g_value_free (GValue *value)
   g_slice_free (GValue, value);
 }
 
-/**
- * grl_g_value_hashtable_new:
- *
- * Returns: (element-type utf8 GValue) (transfer full): a new hash table made to contain GValues.
+/*
+ * Returns: a new hash table made to contain GValues.
  */
 GHashTable *
 grl_g_value_hashtable_new (void)
@@ -59,23 +57,12 @@ grl_g_value_hashtable_new (void)
   return g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify)grl_g_value_free);
 }
 
-/**
- * grl_g_value_hashtable_new_direct:
- *
- * Returns: (element-type gpointer GValue) (transfer full): a new hash table made to contain GValues.
- */
 GHashTable *
 grl_g_value_hashtable_new_direct (void)
 {
   return g_hash_table_new_full (g_direct_hash, g_direct_equal, NULL, (GDestroyNotify)grl_g_value_free);
 }
 
-/**
- * grl_g_value_dup:
- * @value: the #GValue to copy
- *
- * Returns: (transfer full): a duplicated #GValue
- */
 GValue *
 grl_g_value_dup (const GValue *value)
 {

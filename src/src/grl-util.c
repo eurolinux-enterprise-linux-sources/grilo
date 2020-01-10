@@ -33,7 +33,7 @@
  * grl_paging_translate:
  * @skip: number of elements to skip
  * @count: number of elements to retrieve
- * @max_page_size: maximum value for page size (0 for unlimited size)
+ * @max_page_size: maximum value for page size
  * @page_size: optimal page size
  * @page_number: page which contain the first element to retrieve (starting at 1)
  * @internal_offset: in the @page_number, offset where first element can be found (starting at 0)
@@ -53,9 +53,6 @@
  * size, then more requests to services might be needed. But still page size
  * will be an optimal value.
  *
- * If @page_size is @NULL, then page size will be @max_page_size. If the later
- * is also 0, then page size will be #G_MAXUINT.
- *
  * Since: 0.1.6
  **/
 void grl_paging_translate (guint skip,
@@ -68,28 +65,20 @@ void grl_paging_translate (guint skip,
   gulong _page_size;
   gulong last_element;
 
-  if (!page_size) {
+  if (skip < count) {
+    _page_size = skip + count;
     if (max_page_size > 0) {
-      _page_size = max_page_size;
-    } else {
-      _page_size = G_MAXUINT;
+      _page_size = CLAMP (_page_size, 0, max_page_size);
     }
   } else {
-    if (skip < count) {
-      _page_size = skip + count;
-      if (max_page_size > 0) {
-        _page_size = CLAMP (_page_size, 0, max_page_size);
-      }
-    } else {
-      _page_size = count;
-      last_element = skip + count - 1;
-      while (skip/_page_size != last_element/_page_size &&
-             (max_page_size == 0 || _page_size < max_page_size)) {
-        _page_size++;
-      }
+    _page_size = count;
+    last_element = skip + count - 1;
+    while (skip/_page_size != last_element/_page_size &&
+           (max_page_size == 0 || _page_size < max_page_size)) {
+      _page_size++;
     }
-    _page_size = CLAMP (_page_size, 0, G_MAXUINT);
   }
+  _page_size = CLAMP (_page_size, 0, G_MAXUINT);
 
   if (page_size) {
     *page_size = _page_size;
@@ -149,10 +138,6 @@ grl_date_time_from_iso8601 (const gchar *date)
   gboolean ret;
   gchar *date_time;
   gint date_length;
-
-  if (!date) {
-    return NULL;
-  }
 
   ret = g_time_val_from_iso8601 (date, &t);
 

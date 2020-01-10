@@ -1,6 +1,7 @@
 libs/net/grl-net-mock.c
-libs/net/grl-net-wc.c
-libs/pls/grl-pls.c
+libs/net/grl-net-private.c
+libs/net/grl-net-soup-stable.c
+libs/net/grl-net-soup-unstable.c
 src/grilo.c
 src/grl-multiple.c
 src/grl-registry.c

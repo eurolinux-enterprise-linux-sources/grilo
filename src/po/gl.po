@@ -5,9 +5,10 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: grilo master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-08-27 02:34+0200\n"
-"PO-Revision-Date: 2013-08-27 02:34+0200\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=grilo&"
+"keywords=I18N+L10N&component=general\n"
+"POT-Creation-Date: 2013-03-24 06:45+0000\n"
+"PO-Revision-Date: 2013-03-24 23:15+0200\n"
 "Last-Translator: Fran Dieguez <frandieguez@gnome.org>\n"
 "Language-Team: gnome-l10n-gl@gnome.org\n"
 "Language: gl\n"
@@ -18,67 +19,68 @@ msgstr ""
 "X-Generator: Virtaal 0.7.1\n"
 "X-Project-Style: gnome\n"
 
-#: ../libs/net/grl-net-mock.c:79
+#: ../libs/net/grl-net-mock.c:80
 msgid "No mock definition found"
 msgstr "Non se atopou a definición da mofa"
 
-#: ../libs/net/grl-net-mock.c:91
+#: ../libs/net/grl-net-mock.c:90
 #, c-format
 msgid "Could not find mock content %s"
 msgstr "Non foi posíbel atopar o contido da mofa %s"
 
-#: ../libs/net/grl-net-mock.c:111
+#: ../libs/net/grl-net-mock.c:108
 msgid "Could not access mock content"
 msgstr "Non foi posibel acceder ao contido da mofa"
 
-#: ../libs/net/grl-net-wc.c:468
+#: ../libs/net/grl-net-private.c:56
 msgid "Cannot connect to the server"
 msgstr "Non foi posíbel conectarse ao servidor"
 
-#: ../libs/net/grl-net-wc.c:474
+#: ../libs/net/grl-net-private.c:62
 msgid "Cannot connect to the proxy server"
 msgstr "Non foi posíbel conectarse ao servidor proxy"
 
-#: ../libs/net/grl-net-wc.c:481
+#: ../libs/net/grl-net-private.c:69
 #, c-format
 msgid "Invalid request URI or header: %s"
 msgstr "URI ou cabeceira da petición non válida: %s"
 
-#: ../libs/net/grl-net-wc.c:488
+#: ../libs/net/grl-net-private.c:76
 #, c-format
 msgid "Authentication required: %s"
 msgstr "Autenticación requirida: %s"
 
-#: ../libs/net/grl-net-wc.c:493
+#: ../libs/net/grl-net-private.c:81
 #, c-format
 msgid "The requested resource was not found: %s"
 msgstr "O recurso solicitado non foi atopado: %s"
 
-#: ../libs/net/grl-net-wc.c:500
+#: ../libs/net/grl-net-private.c:88
 #, c-format
 msgid "The entry has been modified since it was downloaded: %s"
 msgstr "A entrada foi modificada desde que foi subida: %s"
 
-#: ../libs/net/grl-net-wc.c:506 ../libs/net/grl-net-wc.c:614
-#: ../src/grl-source.c:1710 ../src/grl-source.c:1805 ../src/grl-source.c:1948
-#: ../src/grl-source.c:2184 ../src/grl-source.c:2304
+#: ../libs/net/grl-net-private.c:94 ../libs/net/grl-net-soup-unstable.c:188
+#: ../src/grl-source.c:1714 ../src/grl-source.c:1811 ../src/grl-source.c:1954
+#: ../src/grl-source.c:2198 ../src/grl-source.c:2319
 #, c-format
 msgid "Operation was cancelled"
 msgstr "Cancelouse a operación"
 
-#: ../libs/net/grl-net-wc.c:509
+#: ../libs/net/grl-net-private.c:97
 #, c-format
 msgid "Unhandled status: %s"
 msgstr "Estado non xestionado: %s"
 
-#: ../libs/net/grl-net-wc.c:618 ../libs/net/grl-net-wc.c:659
+#: ../libs/net/grl-net-soup-stable.c:92
+#, c-format
+msgid "Malformed URL %s"
+msgstr "URL %s malformada"
+
+#: ../libs/net/grl-net-soup-unstable.c:192
+#: ../libs/net/grl-net-soup-unstable.c:234
 msgid "Data not available"
 msgstr "Datos non dispoñíbel"
-
-#: ../libs/net/grl-net-wc.c:712
-#, c-format
-msgid "Invalid URL %s"
-msgstr "URL %s non válida"
 
 #: ../src/grilo.c:181
 msgid "Semicolon-separated paths containing Grilo plugins"
@@ -105,7 +107,7 @@ msgstr "Mostra as opcións de Grilo"
 msgid "No searchable sources available"
 msgstr "Non hai ningunha orixe buscábel dispoñíbel"
 
-#: ../src/grl-multiple.c:485
+#: ../src/grl-multiple.c:488
 #, c-format
 msgid "Could not resolve media for URI '%s'"
 msgstr "Non foi posíbel resolver o media para o URI «%s»"
@@ -117,8 +119,8 @@ msgstr "O engadido «%s» xa está cargado"
 
 #: ../src/grl-registry.c:340
 #, c-format
-msgid "Failed to initialize plugin from %s"
-msgstr "Produciuse un fallo ao inicializar o engadido desde %s"
+msgid "Failed to initialize plugin from %so"
+msgstr "Produciuse un fallo ao inicializar o engadido para %so"
 
 #: ../src/grl-registry.c:734
 #, c-format
@@ -170,22 +172,22 @@ msgstr "Non foi posíbel atopar o engadido: «%s»"
 msgid "Metadata key '%s' cannot be registered"
 msgstr "A chave «%s» dos metadatos non poden rexistrarse"
 
-#: ../src/grl-registry.c:1587
+#: ../src/grl-registry.c:1585
 #, c-format
 msgid "Plugin configuration does not contain 'plugin-id' reference"
 msgstr "A configuración do engadido non contén a referencia de «plugin-id»"
 
-#: ../src/grl-source.c:2633
+#: ../src/grl-source.c:2649
 #, c-format
 msgid "Some keys could not be written"
 msgstr "Algunhas chaves non poden escribirse."
 
-#: ../src/grl-source.c:2705
+#: ../src/grl-source.c:2723
 #, c-format
 msgid "None of the specified keys are writable"
 msgstr "Ningunha das chaves especificadas son escribíbeis."
 
-#: ../src/grl-source.c:3997
+#: ../src/grl-source.c:4014
 #, c-format
 msgid "Media has no 'id', cannot remove"
 msgstr "O media non ten «id», non pode eliminarse"

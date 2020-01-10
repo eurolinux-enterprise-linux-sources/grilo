@@ -9,21 +9,21 @@ m4_define([prj_name],    [grilo])
 m4_define([prj_gir_name], [Grilo])
 m4_define([grl_major_version], [0])
 m4_define([grl_minor_version], [2])
-m4_define([grl_micro_version], [12])
+m4_define([grl_micro_version], [6])
 m4_define([prj_version], grl_major_version.grl_minor_version.grl_micro_version)
 
 AC_INIT([prj_name],
         [prj_version],
         [http://bugzilla.gnome.org/enter_bug.cgi?product=grilo;component=core],
         [prj_name],
-        [https://wiki.gnome.org/Projects/Grilo])
+        [http://live.gnome.org/Grilo])
 
-AM_INIT_AUTOMAKE([foreign subdir-objects dist-xz no-dist-gzip])
+AM_INIT_AUTOMAKE([foreign])
 
 AC_CONFIG_MACRO_DIR([m4])
-AC_CONFIG_SRCDIR([src/grilo.h])
+AC_CONFIG_SRCDIR([src])
 
-AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_HEADERS([src/config.h])
 
 AC_PROG_AWK
 AC_PROG_CC
@@ -40,15 +40,9 @@ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 # Grilo Net library
 
-GRLNET_VERSION=0.2.5
+GRLNET_VERSION=0.2.2
 AC_SUBST(GRLNET_VERSION)
 AC_DEFINE_UNQUOTED(GRLNET_VERSION, "$GRLNET_VERSION", [Grilo Net library version])
-
-# Grilo Pls library
-
-GRLPLS_VERSION=0.2.2
-AC_SUBST(GRLPLS_VERSION)
-AC_DEFINE_UNQUOTED(GRLPLS_VERSION, "$GRLPLS_VERSION", [Grilo Pls library version])
 
 # ----------------------------------------------------------
 # LIBTOOL VERSIONING
@@ -57,13 +51,11 @@ AC_DEFINE_UNQUOTED(GRLPLS_VERSION, "$GRLPLS_VERSION", [Grilo Pls library version
 # Libtool library version, not to confuse with API version
 # see http://www.gnu.org/software/libtool/manual/html_node/Libtool-versioning.html
 
-GRL_LT_VERSION=9:0:8
-GRLNET_LT_VERSION=1:9:1
-GRLPLS_LT_VERSION=0:4:0
+GRL_LT_VERSION=4:0:3
+GRLNET_LT_VERSION=1:4:1
 
 AC_SUBST([GRL_LT_VERSION])
 AC_SUBST([GRLNET_LT_VERSION])
-AC_SUBST([GRLPLS_LT_VERSION])
 
 # ----------------------------------------------------------
 # ENVIRONMENT CONFIGURATION
@@ -102,6 +94,17 @@ if test "x${exec_prefix}" = "xNONE" ; then
    exec_prefix="${prefix}"
 fi
 
+if test "${libdir}" = '${exec_prefix}/lib'; then
+   case `uname -m` in
+        x86_64|ppc64|powerpc64)
+                libdir='${exec_prefix}/lib64'
+        ;;
+        *)
+                libdir='${exec_prefix}/lib'
+        ;;
+esac
+fi
+
 # Plugins directory
 
 GRL_PLUGINS_DIR=`eval echo ${libdir}/${GRL_NAME}`
@@ -112,7 +115,7 @@ AC_DEFINE_UNQUOTED(GRL_PLUGINS_DIR, "$GRL_PLUGINS_DIR", [Plugins directory])
 # DEPENDENCIES
 # ----------------------------------------------------------
 
-PKG_CHECK_MODULES(DEPS, glib-2.0 >= 2.34 \
+PKG_CHECK_MODULES(DEPS, glib-2.0 >= 2.29.10 \
 			gobject-2.0 \
 			gmodule-2.0 \
 			gio-2.0 \
@@ -123,11 +126,6 @@ GLIB_GENMARSHAL=`pkg-config --variable=glib_genmarshal glib-2.0`
 GLIB_MKENUMS=`pkg-config --variable=glib_mkenums glib-2.0`
 AC_SUBST(GLIB_GENMARSHAL)
 AC_SUBST(GLIB_MKENUMS)
-
-PKG_CHECK_MODULES(GIO_WITH_NM, gio-2.0 >= 2.43.1, [has_gio_with_netmon=yes], [has_gio_with_netmon=false])
-if test "x$has_gio_with_netmon" = "xyes"; then
-    AC_DEFINE(HAVE_GIO_WITH_NETMON, 1, [GNetworkConnectivityMonitor available])
-fi
 
 # ----------------------------------------------------------
 # UI Tool
@@ -169,9 +167,13 @@ AM_CONDITIONAL(BUILD_GRILO_TEST_UI, test "x$HAVE_GTK" = "xyes")
 # NET LIBRARY
 # ----------------------------------------------------------
 
-PKG_CHECK_MODULES(NET, libsoup-2.4 >= 2.33.4,
+PKG_CHECK_MODULES(NET, libsoup-2.4,
 			HAVE_LIBSOUP=yes,
 			HAVE_LIBSOUP=no)
+
+PKG_CHECK_EXISTS([libsoup-2.4 >= 2.33.4],
+		 [HAVE_CACHED_LIBSOUP=yes],
+		 [HAVE_CACHED_LIBSOUP=no])
 
 PKG_CHECK_EXISTS([libsoup-2.4 >= 2.41.3],
                  [HAVE_LIBSOUP_REQUESTER_DEPRECATED=yes],
@@ -194,31 +196,8 @@ AC_ARG_ENABLE([grl_net],
         ])
 
 AM_CONDITIONAL(BUILD_GRILO_NET, test "x$HAVE_LIBSOUP" = "xyes")
+AM_CONDITIONAL(BUILD_GRILO_NET_WITH_CACHE, test "x$HAVE_CACHED_LIBSOUP" = "xyes")
 AM_CONDITIONAL(BUILD_GRILO_NET_WITH_DEPRECATED_REQUESTER, test "x$HAVE_LIBSOUP_REQUESTER_DEPRECATED" = "xyes")
-
-# ----------------------------------------------------------
-# PLS LIBRARY
-# ----------------------------------------------------------
-
-PKG_CHECK_MODULES(TOTEM_PL_PARSER, totem-plparser >= 3.4.1, HAVE_TOTEM_PL_PARSER=yes, HAVE_TOTEM_PL_PARSER=no)
-
-AC_ARG_ENABLE([grl_pls],
-        AS_HELP_STRING([--enable-grl-pls],
-                [Enable Grilo Pls library (default: auto)]),
-        [
-                case "$enableval" in
-                     yes)
-                        if test "x$HAVE_TOTEM_PL_PARSER" = "xno"; then
-                           AC_MSG_ERROR([totem-pl-parser not found, install it or use --disable-grl-pls])
-                        fi
-                        ;;
-                     no)
-                        HAVE_TOTEM_PL_PARSER=no
-                        ;;
-                esac
-        ])
-
-AM_CONDITIONAL(BUILD_GRILO_PLS, test "x$HAVE_TOTEM_PL_PARSER" = "xyes")
 
 # ----------------------------------------------------------
 # DEBUG SUPPORT
@@ -243,6 +222,53 @@ AC_ARG_ENABLE([tests],
 AM_CONDITIONAL(ENABLE_TESTS, test "enable_tests" = "xyes")
 
 # ----------------------------------------------------------
+# VALA BINDINGS
+# ----------------------------------------------------------
+
+AC_MSG_CHECKING([whether Vala plugin support is requested])
+AC_ARG_ENABLE([vala],
+        AS_HELP_STRING([--enable-vala],[Enable Vala plugin support]),
+        [enable_vala=$enableval have_vala=$enableval],
+        [enable_vala=autodetect have_vala=yes])
+AC_MSG_RESULT([$enable_vala])
+if test "x$enable_vala" != "xno"; then
+	valapkg=""
+	m4_foreach([VERSION], [[0.12], [0.14], [0.16], [0.18], [0.20]],
+		   [PKG_CHECK_EXISTS([ libvala-VERSION ],
+                           [ valapkg="libvala-VERSION" ])
+		   ])
+
+	if test "x$valapkg" != "x"; then
+	        PKG_CHECK_MODULES([VALA], [ ${valapkg} ],
+				  [ with_vala="yes" ],
+			          [ with_vala="no" ])
+	else
+               with_vala="no"
+	fi
+
+        if test "x$with_vala" = "xyes"; then
+                AC_PATH_PROG([VALAC], [valac])
+                if test "x$VALAC" = "x"; then
+                        AC_MSG_ERROR([No Vala compiler found.])
+                fi
+
+                AC_PATH_PROG([VALA_GEN_INTROSPECT], [vala-gen-introspect])
+                if test "x$VALA_GEN_INTROSPECT" = "x"; then
+                        AC_MSG_ERROR([Cannot find "vala-gen-introspect" in your PATH])
+                fi
+
+                AC_PATH_PROG([VAPIGEN], [vapigen])
+                if test "x$VAPIGEN" = "x"; then
+                        AC_MSG_ERROR([Cannot fine "vapigen" in your PATH])
+                fi
+
+        elif test "x$enable_vala" = "xyes"; then
+                AC_MSG_ERROR([Vala plugin support explicitly requested, but not found])
+        fi
+fi
+AM_CONDITIONAL(HAVE_VALA, test "x$with_vala" = "xyes")
+
+# ----------------------------------------------------------
 # GTK-DOC
 # ----------------------------------------------------------
 
@@ -253,12 +279,6 @@ GTK_DOC_CHECK([1.10],[--flavour no-tmpl])
 # ----------------------------------------------------------
 
 GOBJECT_INTROSPECTION_CHECK([0.9])
-
-# ----------------------------------------------------------
-# VALA BINDINGS
-# ----------------------------------------------------------
-
-VAPIGEN_CHECK([0.27])
 
 # ----------------------------------------------------------
 # GETTEXT/INTLTOOL
@@ -284,10 +304,6 @@ if test "x$HAVE_LIBSOUP" = "xyes"; then
    AC_CONFIG_FILES([grilo-net-uninstalled.pc grilo-net-0.2.pc])
 fi
 
-if test "x$HAVE_TOTEM_PL_PARSER" = "xyes"; then
-   AC_CONFIG_FILES([grilo-pls-uninstalled.pc grilo-pls-0.2.pc])
-fi
-
 AC_CONFIG_FILES([
   Makefile
   grilo-uninstalled.pc
@@ -300,13 +316,16 @@ AC_CONFIG_FILES([
   tests/python/util.py
   libs/Makefile
   libs/net/Makefile
-  libs/pls/Makefile
   tools/Makefile
   tools/grilo-test-ui/Makefile
   tools/grilo-inspect/Makefile
-  tools/grilo-launch/Makefile
+  tools/vala/Makefile
   bindings/Makefile
   bindings/vala/Makefile
+  bindings/vala/grilo-uninstalled.files
+  bindings/vala/grilo-uninstalled.namespace
+  bindings/vala/grilo-net-uninstalled.files
+  bindings/vala/grilo-net-uninstalled.namespace
   doc/Makefile
   doc/grilo/Makefile
   examples/Makefile

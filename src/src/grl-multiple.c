@@ -140,11 +140,9 @@ static void
 handle_no_searchable_sources (GrlSourceResultCb callback, gpointer user_data)
 {
   struct CallbackData *callback_data = g_new0 (struct CallbackData, 1);
-  guint id;
   callback_data->user_callback = callback;
   callback_data->user_data = user_data;
-  id = g_idle_add (handle_no_searchable_sources_idle, callback_data);
-  g_source_set_name_by_id (id, "[grilo] handle_no_searchable_sources_idle");
+  g_idle_add (handle_no_searchable_sources_idle, callback_data);
 }
 
 static struct MultipleSearchData *
@@ -368,7 +366,10 @@ multiple_search_cb (GrlSource *source,
 
   if (msd->cancelled) {
     GRL_DEBUG ("operation is cancelled or already finished, skipping result!");
-    g_clear_object (&media);
+    if (media) {
+      g_object_unref (media);
+      media = NULL;
+    }
     if (operation_done) {
       /* This was the last result and the operation is cancelled
 	 so we don't have anything else to do*/
@@ -498,7 +499,7 @@ media_from_uri_cb (GrlSource *source,
 
 /**
  * grl_multiple_search:
- * @sources: (element-type GrlSource) (allow-none):
+ * @sources: (element-type Grl.Source) (allow-none):
  * a #GList of #GrlSource<!-- -->s to search from (%NULL for all
  * searchable sources)
  * @text: the text to search for
@@ -579,7 +580,6 @@ static void
 multiple_search_cancel_cb (struct MultipleSearchData *msd)
 {
   GList *sources, *ids;
-  guint id;
 
   /* Go through all the sources involved in that operation and issue
      cancel() operations for each one */
@@ -597,13 +597,12 @@ multiple_search_cancel_cb (struct MultipleSearchData *msd)
   msd->cancelled = TRUE;
 
   /* Send operation finished message now to client (remaining == 0) */
-  id = g_idle_add (confirm_cancel_idle, msd);
-  g_source_set_name_by_id (id, "[grilo] confirm_cancel_idle");
+  g_idle_add (confirm_cancel_idle, msd);
 }
 
 /**
  * grl_multiple_search_sync:
- * @sources: (element-type GrlSource) (allow-none):
+ * @sources: (element-type Grl.Source) (allow-none):
  * a #GList of #GrlSource<!-- -->s where to search from (%NULL for all
  * available sources with search capability)
  * @text: the text to search for
@@ -616,7 +615,7 @@ multiple_search_cancel_cb (struct MultipleSearchData *msd)
  *
  * This method is synchronous.
  *
- * Returns: (element-type GrlMedia) (transfer full): a list with #GrlMedia elements
+ * Returns: (element-type Grl.Media) (transfer full): a list with #GrlMedia elements
  *
  * Since: 0.2.0
  */

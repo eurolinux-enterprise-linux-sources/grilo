@@ -285,8 +285,6 @@ grl_related_keys_set_string (GrlRelatedKeys *relkeys,
 {
   GValue value = { 0 };
 
-  g_return_if_fail (GRL_IS_RELATED_KEYS (relkeys));
-
   if (strvalue) {
     g_value_init (&value, G_TYPE_STRING);
     g_value_set_string (&value, strvalue);
@@ -312,11 +310,7 @@ const gchar *
 grl_related_keys_get_string (GrlRelatedKeys *relkeys,
                              GrlKeyID key)
 {
-  const GValue *value;
-
-  g_return_val_if_fail (GRL_IS_RELATED_KEYS (relkeys), NULL);
-
-  value = grl_related_keys_get (relkeys, key);
+  const GValue *value = grl_related_keys_get (relkeys, key);
 
   if (!value || !G_VALUE_HOLDS_STRING (value)) {
     return NULL;
@@ -342,7 +336,6 @@ grl_related_keys_set_int (GrlRelatedKeys *relkeys,
                           gint intvalue)
 {
   GValue value = { 0 };
-  g_return_if_fail (GRL_IS_RELATED_KEYS (relkeys));
   g_value_init (&value, G_TYPE_INT);
   g_value_set_int (&value, intvalue);
   grl_related_keys_set (relkeys, key, &value);
@@ -364,11 +357,7 @@ gint
 grl_related_keys_get_int (GrlRelatedKeys *relkeys,
                           GrlKeyID key)
 {
-  const GValue *value;
-
-  g_return_val_if_fail (GRL_IS_RELATED_KEYS (relkeys), 0);
-
-  value = grl_related_keys_get (relkeys, key);
+  const GValue *value = grl_related_keys_get (relkeys, key);
 
   if (!value || !G_VALUE_HOLDS_INT (value)) {
     return 0;
@@ -394,7 +383,6 @@ grl_related_keys_set_float (GrlRelatedKeys *relkeys,
                             float floatvalue)
 {
   GValue value = { 0 };
-  g_return_if_fail (GRL_IS_RELATED_KEYS (relkeys));
   g_value_init (&value, G_TYPE_FLOAT);
   g_value_set_float (&value, floatvalue);
   grl_related_keys_set (relkeys, key, &value);
@@ -416,11 +404,7 @@ gfloat
 grl_related_keys_get_float (GrlRelatedKeys *relkeys,
                             GrlKeyID key)
 {
-  const GValue *value;
-
-  g_return_val_if_fail (GRL_IS_RELATED_KEYS (relkeys), 0.0);
-
-  value = grl_related_keys_get (relkeys, key);
+  const GValue *value = grl_related_keys_get (relkeys, key);
 
   if (!value || !G_VALUE_HOLDS_FLOAT (value)) {
     return 0;
@@ -446,7 +430,6 @@ grl_related_keys_set_boolean (GrlRelatedKeys *relkeys,
                               gboolean booleanvalue)
 {
   GValue value = { 0 };
-  g_return_if_fail (GRL_IS_RELATED_KEYS (relkeys));
   g_value_init (&value, G_TYPE_BOOLEAN);
   g_value_set_boolean (&value, booleanvalue);
   grl_related_keys_set (relkeys, key, &value);
@@ -469,11 +452,7 @@ gboolean
 grl_related_keys_get_boolean (GrlRelatedKeys *relkeys,
                               GrlKeyID key)
 {
-  const GValue *value;
-
-  g_return_val_if_fail (GRL_IS_RELATED_KEYS (relkeys), FALSE);
-
-  value = grl_related_keys_get (relkeys, key);
+  const GValue *value = grl_related_keys_get (relkeys, key);
 
   if (!value || !G_VALUE_HOLDS_BOOLEAN (value)) {
     return FALSE;
@@ -502,8 +481,6 @@ grl_related_keys_set_binary (GrlRelatedKeys *relkeys,
 {
   GValue v = { 0 };
   GByteArray *array;
-
-  g_return_if_fail (GRL_IS_RELATED_KEYS (relkeys));
 
   if (!buf || !size) {
     return;
@@ -538,13 +515,9 @@ grl_related_keys_get_binary (GrlRelatedKeys *relkeys,
                              GrlKeyID key,
                              gsize *size)
 {
-  const GValue *value;
-
-  g_return_val_if_fail (GRL_IS_RELATED_KEYS (relkeys), NULL);
   g_return_val_if_fail (size, NULL);
 
-  value = grl_related_keys_get (relkeys, key);
-
+  const GValue *value = grl_related_keys_get (relkeys, key);
 
   if (!value || !G_VALUE_HOLDS_BOXED (value)) {
     return NULL;
@@ -575,7 +548,6 @@ grl_related_keys_set_boxed (GrlRelatedKeys *relkeys,
 {
   GValue value = { 0 };
 
-  g_return_if_fail (GRL_IS_RELATED_KEYS (relkeys));
   g_return_if_fail (boxed != NULL);
 
   g_value_init (&value, grl_metadata_key_get_type (key));
@@ -603,68 +575,12 @@ gconstpointer
 grl_related_keys_get_boxed (GrlRelatedKeys *relkeys,
                             GrlKeyID key)
 {
-  const GValue *value;
-
-  g_return_val_if_fail (GRL_IS_RELATED_KEYS (relkeys), NULL);
-
-  value = grl_related_keys_get (relkeys, key);
+  const GValue *value = grl_related_keys_get (relkeys, key);
 
   if (!value || !G_VALUE_HOLDS_BOXED (value)) {
     return NULL;
   } else {
     return g_value_get_boxed (value);
-  }
-}
-
-/**
- * grl_related_keys_set_int64:
- * @relkeys: set of related keys to change
- * @key: (type GrlKeyID): key to change or add
- * @intvalue: the new value
- *
- * Sets the value associated with @key into @relkeys. @key must have been
- * registered as a int64-type key. Old value is replaced by the new one.
- *
- * Since: 0.2.12
- **/
-void
-grl_related_keys_set_int64 (GrlRelatedKeys *relkeys,
-                            GrlKeyID key,
-                            gint64 intvalue)
-{
-  GValue value = { 0 };
-  g_return_if_fail (GRL_IS_RELATED_KEYS (relkeys));
-  g_value_init (&value, G_TYPE_INT64);
-  g_value_set_int64 (&value, intvalue);
-  grl_related_keys_set (relkeys, key, &value);
-}
-
-/**
- * grl_related_keys_get_int64:
- * @relkeys: set of related keys to inspect
- * @key: (type GrlKeyID): key to use
- *
- * Returns the value associated with @key from @relkeys. If @key has no value,
- * or value is not a gint64, or @key is not in @relkeys, then 0 is returned.
- *
- * Returns: int64 value associated with @key, or 0 in other case.
- *
- * Since: 0.2.12
- **/
-gint64
-grl_related_keys_get_int64 (GrlRelatedKeys *relkeys,
-                            GrlKeyID key)
-{
-  const GValue *value;
-
-  g_return_val_if_fail (GRL_IS_RELATED_KEYS (relkeys), 0);
-
-  value = grl_related_keys_get (relkeys, key);
-
-  if (!value || !G_VALUE_HOLDS_INT64 (value)) {
-    return 0;
-  } else {
-    return g_value_get_int64 (value);
   }
 }
 
@@ -748,7 +664,7 @@ grl_related_keys_dup (GrlRelatedKeys *relkeys)
   GValue *value_copy;
   GrlRelatedKeys *dup_relkeys;
 
-  g_return_val_if_fail (GRL_IS_RELATED_KEYS (relkeys), NULL);
+  g_return_val_if_fail (relkeys, NULL);
 
   dup_relkeys = grl_related_keys_new ();
 

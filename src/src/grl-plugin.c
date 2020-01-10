@@ -23,9 +23,10 @@
 /**
  * SECTION:grl-plugin
  * @short_description: Base class for Grilo Plugins
- * @see_also: #GrlSource
+ * @see_also: #GrlMetadataSource, #GrlMediaSource
  *
- * Grilo is extensible, so #GrlSource instances can be loaded at runtime.
+ * Grilo is extensible, so #GrlMetadataSource or #GrlMediaSource instances can be
+ * loaded at runtime.
  * A plugin system can provide one or more of the basic
  * <application>Grilo</application> #GrlSource subclasses.
  *
@@ -64,7 +65,6 @@ struct _GrlPluginPrivate {
   gboolean loaded;
   gboolean (*load_func) (GrlRegistry *, GrlPlugin *, GList *);
   void (*unload_func) (GrlPlugin *);
-  void (*register_keys_func) (GrlRegistry *, GrlPlugin *);
 };
 
 static void grl_plugin_finalize (GObject *object);
@@ -201,26 +201,9 @@ grl_plugin_set_unload_func (GrlPlugin *plugin,
 }
 
 /*
- * grl_plugin_set_register_keys_func:
- * @plugin: a plugin
- * @register_keys_function: a function
- *
- * Sets the function to be executed to register new
- * metadata keys.
- */
-void
-grl_plugin_set_register_keys_func (GrlPlugin *plugin,
-                                   gpointer   register_keys_function)
-{
-  g_return_if_fail (GRL_IS_PLUGIN (plugin));
-
-  plugin->priv->register_keys_func = register_keys_function;
-}
-
-/**
  * grl_plugin_load:
  * @plugin: a plugin
- * @configurations: (element-type GrlConfig): a list of configurations
+ * @configurations: (element-type Grl.Config): a list of configurations
  *
  * Load the plugin
  *
@@ -270,26 +253,6 @@ grl_plugin_unload (GrlPlugin *plugin)
 }
 
 /*
- * grl_plugin_register_keys:
- * @plugin: a plugin
- *
- * Register custom metadata keys for the plugin
- */
-void
-grl_plugin_register_keys (GrlPlugin *plugin)
-{
-  GrlRegistry *registry;
-
-  g_return_if_fail (GRL_IS_PLUGIN (plugin));
-
-  registry = grl_registry_get_default ();
-
-  if (plugin->priv->register_keys_func) {
-    plugin->priv->register_keys_func (registry, plugin);
-  }
-}
-
-/*
  * grl_plugin_set_id:
  * @plugin: a plugin
  * @id: plugin identifier
@@ -302,8 +265,9 @@ grl_plugin_set_id (GrlPlugin *plugin,
 {
   g_return_if_fail (GRL_IS_PLUGIN (plugin));
 
-  g_clear_pointer (&plugin->priv->id, g_free);
-
+  if (plugin->priv->id) {
+    g_free (plugin->priv->id);
+  }
   plugin->priv->id = g_strdup (id);
 }
 
@@ -320,7 +284,9 @@ grl_plugin_set_filename (GrlPlugin *plugin,
 {
   g_return_if_fail (GRL_IS_PLUGIN (plugin));
 
-  g_clear_pointer (&plugin->priv->filename, g_free);
+  if (plugin->priv->filename) {
+    g_free (plugin->priv->filename);
+  }
 
   plugin->priv->filename = g_strdup (filename);
 }
@@ -566,7 +532,7 @@ grl_plugin_get_info (GrlPlugin *plugin, const gchar *key)
  *
  * Gets the sources belonging to @plugin.
  *
- * Returns: (transfer container) (element-type GrlSource): a #GList of
+ * Returns: (transfer container) (element-type Grl.Source): a #GList of
  * #GrlSource<!-- -->s. The content of the list should not be modified or
  * freed. Use g_list_free() when done using the list.
  *

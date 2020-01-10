@@ -94,7 +94,7 @@ source_added_cb (GrlRegistry *registry, GrlSource *source, gpointer user_data)
     caps = grl_source_get_caps (source, GRL_OP_BROWSE);
     options = grl_operation_options_new (caps);
     grl_operation_options_set_count (options, 5);
-    grl_operation_options_set_resolution_flags (options, GRL_RESOLVE_IDLE_RELAY);
+    grl_operation_options_set_flags (options, GRL_RESOLVE_IDLE_RELAY);
 
     grl_source_browse (source,
                        NULL,
@@ -132,6 +132,5 @@ main (int argc, gchar *argv[])
   load_plugins ();
   loop = g_main_loop_new (NULL, FALSE);
   g_main_loop_run (loop);
-  grl_deinit ();
   return 0;
 }

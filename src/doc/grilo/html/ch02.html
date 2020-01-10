@@ -2,27 +2,27 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Environment Setup: Grilo Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<title>Environment Setup</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
 <link rel="home" href="index.html" title="Grilo Reference Manual">
 <link rel="up" href="rn01.html" title="Tutorial">
 <link rel="prev" href="ch01.html" title="Quick start guide">
 <link rel="next" href="ch03.html" title="Writing applications with Grilo">
-<meta name="generator" content="GTK-Doc V1.21.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
-<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
-<td width="100%" align="left" class="shortcuts"></td>
-<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
-<td><a accesskey="u" href="rn01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
-<td><a accesskey="p" href="ch01.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="ch03.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2"><tr valign="middle">
+<td><a accesskey="p" href="ch01.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="rn01.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Grilo Reference Manual</th>
+<td><a accesskey="n" href="ch03.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="chapter">
 <div class="titlepage"><div><div><h2 class="title">
-<a name="id-1.3.3"></a>Environment Setup</h2></div></div></div>
-<div class="toc"><dl class="toc">
+<a name="idp18014944"></a>Environment Setup</h2></div></div></div>
+<div class="toc"><dl>
 <dt><span class="section"><a href="ch02.html#environment-setup"></a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="ch02.html#building-grilo-detailed">Building Grilo </a></span></dt>
@@ -51,11 +51,46 @@
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
+<a name="building-grilo-sources-uninstalled"></a>Building and not installing Grilo</h4></div></div></div>
+<p>
+        If you do not want to install Grilo and rather use it in uninstalled
+        form, do:
+      </p>
+<pre class="programlisting">
+# Building Grilo
+$ git clone git://git.gnome.org/grilo
+$ cd grilo
+$ ./autogen.sh
+$ make
+
+# Building Grilo Plugins
+$ export PKG_CONFIG_PATH=$PWD:$PKG_CONFIG_PATH
+$ cd ..
+$ git clone git://git.gnome.org/grilo-plugins
+$ cd grilo-plugins
+$ ./autogen.sh --enable-uninstalled
+$ make
+$ source ./setup-plugins-env.sh
+      </pre>
+<p>
+        Please, notice the '--enable-uninstalled' switch passed to the autogen.sh
+        script in grilo-plugins and the PKG_CONFIG_PATH export.
+      </p>
+<p>
+        The last 'source' command looks for the plugins built in the local repository
+        and exports the GRL_PLUGIN_PATH environment variable accordingly, making them
+        visible to Grilo based applications. Notice that if that if this last step
+        is ommitted Grilo based applications (like grilo-test-ui) will not
+        see any of the plugins available.
+      </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h4 class="title">
 <a name="compilation-options"></a>Compilation options</h4></div></div></div>
 <p>
         This is a reference of the most useful compilation switches available:
       </p>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
           --enable-gtk-doc: Build documentation
           tutorials and API reference. Check doc/ directory for
@@ -109,6 +144,12 @@ $ export LD_LIBRARY_PATH=/usr/local/lib
 <pre class="programlisting">
 $ export GRL_PLUGIN_PATH=/usr/local/lib/grilo-0.2
     </pre>
+<p>
+      Notice that if you are running Grilo uninstalled the above will not
+      be necessary if you have followed the instructions provided in this
+      documentation, since sourcing the setup-plugins-env.sh script will
+      export the variable automatically for you.
+    </p>
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -165,6 +206,6 @@ $ export GRL_PLUGIN_RANKS=youtube:5,bookmarks:-4
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.21.1</div>
+          Generated by GTK-Doc V1.18.1</div>
 </body>
 </html>

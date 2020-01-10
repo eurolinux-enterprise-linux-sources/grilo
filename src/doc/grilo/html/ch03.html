@@ -2,27 +2,27 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Writing applications with Grilo: Grilo Reference Manual</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<title>Writing applications with Grilo</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
 <link rel="home" href="index.html" title="Grilo Reference Manual">
 <link rel="up" href="rn01.html" title="Tutorial">
 <link rel="prev" href="ch02.html" title="Environment Setup">
 <link rel="next" href="ch04.html" title="Writing plugins for Grilo">
-<meta name="generator" content="GTK-Doc V1.21.1 (XML mode)">
+<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
-<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="5"><tr valign="middle">
-<td width="100%" align="left" class="shortcuts"></td>
-<td><a accesskey="h" href="index.html"><img src="home.png" width="16" height="16" border="0" alt="Home"></a></td>
-<td><a accesskey="u" href="rn01.html"><img src="up.png" width="16" height="16" border="0" alt="Up"></a></td>
-<td><a accesskey="p" href="ch02.html"><img src="left.png" width="16" height="16" border="0" alt="Prev"></a></td>
-<td><a accesskey="n" href="ch04.html"><img src="right.png" width="16" height="16" border="0" alt="Next"></a></td>
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2"><tr valign="middle">
+<td><a accesskey="p" href="ch02.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="rn01.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Grilo Reference Manual</th>
+<td><a accesskey="n" href="ch04.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
 </tr></table>
 <div class="chapter">
 <div class="titlepage"><div><div><h2 class="title">
-<a name="id-1.3.4"></a>Writing applications with Grilo</h2></div></div></div>
-<div class="toc"><dl class="toc">
+<a name="idp17928952"></a>Writing applications with Grilo</h2></div></div></div>
+<div class="toc"><dl>
 <dt><span class="section"><a href="ch03.html#writing-apps"></a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="ch03.html#programming-with-grilo-concepts">Basic concepts</a></span></dt>
@@ -60,7 +60,7 @@
 <p>
         There are two kinds of plugins in Grilo:
         </p>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">Media Sources, which provide access to media content
             that can be browsed or searched.</li>
 <li class="listitem">Metadata Sources, which provide additional metadata
@@ -86,7 +86,7 @@
       </p>
 <p>
         You can instruct Grilo to load all available plugins via
-        <a class="link" href="GrlRegistry.html#grl-registry-load-all-plugins" title="grl_registry_load_all_plugins ()">grl_registry_load_all_plugins()</a>.
+        <a class="link" href="GrlRegistry.html#grl-registry-load-all-plugins" title="grl_registry_load_all_plugins ()">grl_registry_load_all_plugins()</a>.
         This will look into the default
         installation directory for the plugins and also the paths
         included via the environment variable GRL_PLUGIN_PATH.
@@ -105,20 +105,20 @@
         Users have two options to gain access to the media source and
         metadata source objects loaded by the plugin registry:
       </p>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
           Call
-          <a class="link" href="GrlRegistry.html#grl-registry-get-sources" title="grl_registry_get_sources ()">
+          <a class="link" href="GrlRegistry.html#grl-registry-get-sources" title="grl_registry_get_sources ()">
             grl_registry_get_sources*
           </a> or
-          <a class="link" href="GrlRegistry.html#grl-registry-lookup-source" title="grl_registry_lookup_source ()">
+          <a class="link" href="GrlRegistry.html#grl-registry-lookup-source" title="grl_registry_lookup_source ()">
             grl_registry_lookup_source
           </a>. These should be used
           when plugins have already been loaded.
         </li>
 <li class="listitem">
           By connecting to the
-          <a class="link" href="GrlRegistry.html#GrlRegistry-source-added" title="The “source-added” signal">source-added</a>
+          <a class="link" href="GrlRegistry.html#GrlRegistry-source-added" title='The "source-added" signal'>source-added</a>
           signal, that is emitted whenever a new media source or metadata
           source object is found.
         </li>
@@ -147,7 +147,7 @@
         Browse, Search or Query operations on them. The purpose of
         these operations is explained below:
       </p>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
 <span class="emphasis"><em>Search.</em></span>
           Instructs the media source to look for media matching
@@ -184,7 +184,7 @@
         interact with metadata sources via Resolve or SetMetadata
         operations, which are described below:
       </p>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
 <span class="emphasis"><em>Resolve:</em></span>
           Acquire additional metadata for a particular media resource.
@@ -246,7 +246,7 @@
         Some Media Source and Metadata Source operations will return
         an operation identifier that serves various purposes:
       </p>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">Identify the operation within the framework.</li>
 <li class="listitem">Match asynchronously results with the issuing operations.</li>
 <li class="listitem">Provide an operation identifier that can be used to cancel the operation.</li>
@@ -308,7 +308,7 @@
 </div>
 <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id-1.3.4.2.2.8"></a>Metadata keys</h4></div></div></div>
+<a name="idp21038520"></a>Metadata keys</h4></div></div></div>
 <p>
         Metadata keys identify pieces of information (metadata).
         They are often an input parameter for many operations
@@ -333,7 +333,7 @@
         Keys is that these do not have definitions available, and
         hence clients must query the plugin registry to know
         their identifiers first using
-        <a class="link" href="GrlRegistry.html#grl-registry-lookup-metadata-key" title="grl_registry_lookup_metadata_key ()">
+        <a class="link" href="GrlRegistry.html#grl-registry-lookup-metadata-key" title="grl_registry_lookup_metadata_key ()">
           grl_registry_lookup_metadata_key
         </a>.
       </p>
@@ -443,8 +443,6 @@ main (int argc, gchar *argv[])
   /* Run the main loop */
   loop = g_main_loop_new (NULL, FALSE);
   g_main_loop_run (loop);
-
-  grl_deinit ();
 
   return 0;
 }
@@ -560,7 +558,7 @@ source_added_cb (GrlRegistry *registry, GrlSource *source, gpointer user_data)
     caps = grl_source_get_caps (source, GRL_OP_BROWSE);
     options = grl_operation_options_new (caps);
     grl_operation_options_set_count (options, 5);
-    grl_operation_options_set_resolution_flags (options, GRL_RESOLVE_IDLE_RELAY);
+    grl_operation_options_set_flags (options, GRL_RESOLVE_IDLE_RELAY);
 
     grl_source_browse (source,
                        NULL,
@@ -598,7 +596,6 @@ main (int argc, gchar *argv[])
   load_plugins ();
   loop = g_main_loop_new (NULL, FALSE);
   g_main_loop_run (loop);
-  grl_deinit ();
   return 0;
 }
 
@@ -606,7 +603,7 @@ main (int argc, gchar *argv[])
 <p>
         Please notice:
         </p>
-<div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<div class="itemizedlist"><ul class="itemizedlist" type="disc">
 <li class="listitem">
             Finalization of the Browse operation is always
             indicated by setting the 'remaining' parameter to 0.
@@ -724,7 +721,7 @@ source_added_cb (GrlRegistry *registry, GrlSource *source, gpointer user_data)
   caps = grl_source_get_caps (source, GRL_OP_SEARCH);
   options = grl_operation_options_new (caps);
   grl_operation_options_set_count (options, 5);
-  grl_operation_options_set_resolution_flags (options, GRL_RESOLVE_IDLE_RELAY);
+  grl_operation_options_set_flags (options, GRL_RESOLVE_IDLE_RELAY);
 
   g_debug ("Searching \"rock\" in Jamendo");
   grl_source_search (source,
@@ -760,7 +757,6 @@ main (int argc, gchar *argv[])
   load_plugins ();
   loop = g_main_loop_new (NULL, FALSE);
   g_main_loop_run (loop);
-  grl_deinit ();
   return 0;
 }
 
@@ -799,7 +795,7 @@ main (int argc, gchar *argv[])
         Grilo provides application and plugin developers with a high-level APIs to
         handle certain relations among keys consistently. Continuing with the example
         of the video resource with multiple URIs, there is
-        <a class="link" href="GrlMediaVideo.html#grl-media-video-add-url-data" title="grl_media_video_add_url_data ()">
+        <a class="link" href="GrlMediaVideo.html#grl-media-video-add-url-data" title="grl_media_video_add_url_data ()">
           grl_media_video_add_url_data
         </a> and
         <GTKDOCLINK HREF="grl-media-video-add-url-data-nth">
@@ -898,7 +894,7 @@ source_added_cb (GrlRegistry *registry, GrlSource *source, gpointer user_data)
   options = grl_operation_options_new (caps);
   grl_operation_options_set_skip (options, 0);
   grl_operation_options_set_count (options, 5);
-  grl_operation_options_set_resolution_flags (options, GRL_RESOLVE_IDLE_RELAY);
+  grl_operation_options_set_flags (options, GRL_RESOLVE_IDLE_RELAY);
 
   g_debug ("Searching \"rock\" in Youtube");
   grl_source_search (source,
@@ -952,7 +948,6 @@ main (int argc, gchar *argv[])
   load_plugins ();
   loop = g_main_loop_new (NULL, FALSE);
   g_main_loop_run (loop);
-  grl_deinit ();
   return 0;
 }
 
@@ -1112,7 +1107,7 @@ search_cb (GrlSource *source,
 
     caps = grl_source_get_caps (source, GRL_OP_RESOLVE);
     options = grl_operation_options_new (caps);
-    grl_operation_options_set_resolution_flags (options, GRL_RESOLVE_IDLE_RELAY);
+    grl_operation_options_set_flags (options, GRL_RESOLVE_IDLE_RELAY);
     grl_source_resolve (source,
 			       media,
 			       keys,
@@ -1147,7 +1142,7 @@ source_added_cb (GrlRegistry *registry, GrlSource *source, gpointer user_data)
   caps = grl_source_get_caps (source, GRL_OP_SEARCH);
   options = grl_operation_options_new (caps);
   grl_operation_options_set_count (options, 5);
-  grl_operation_options_set_resolution_flags (options,
+  grl_operation_options_set_flags (options,
                                    GRL_RESOLVE_IDLE_RELAY
                                    | GRL_RESOLVE_FAST_ONLY);
 
@@ -1212,7 +1207,6 @@ main (int argc, gchar *argv[])
   load_plugins ();
   loop = g_main_loop_new (NULL, FALSE);
   g_main_loop_run (loop);
-  grl_deinit ();
 
   return 0;
 }
@@ -1224,6 +1218,6 @@ main (int argc, gchar *argv[])
 </div>
 <div class="footer">
 <hr>
-          Generated by GTK-Doc V1.21.1</div>
+          Generated by GTK-Doc V1.18.1</div>
 </body>
 </html>

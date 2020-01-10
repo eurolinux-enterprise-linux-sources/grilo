@@ -5,12 +5,25 @@
 #
 # Copyright (C) 2010 Igalia S.L. All rights reserved.
 
-SUBDIRS = grilo-inspect grilo-launch
+SUBDIRS = grilo-inspect
 
 if BUILD_GRILO_TEST_UI
 SUBDIRS += grilo-test-ui
 endif
 
-DIST_SUBDIRS = grilo-test-ui grilo-inspect grilo-launch
+if HAVE_VALA
+SUBDIRS += vala
+endif
 
--include $(top_srcdir)/git.mk
+
+DIST_SUBDIRS = grilo-test-ui grilo-inspect vala
+
+MAINTAINERCLEANFILES = \
+        *.in \
+        *~
+
+DISTCLEANFILES = $(MAINTAINERCLEANFILES)
+
+
+
+

@@ -64,12 +64,10 @@ enum {
   PROP_ID,
   PROP_NAME,
   PROP_DESC,
-  PROP_ICON,
   PROP_PLUGIN,
   PROP_RANK,
   PROP_AUTO_SPLIT_THRESHOLD,
-  PROP_SUPPORTED_MEDIA,
-  PROP_SOURCE_TAGS
+  PROP_SUPPORTED_MEDIA
 };
 
 enum {
@@ -77,7 +75,7 @@ enum {
   SIG_LAST
 };
 
-static gint source_signals[SIG_LAST];
+static gint registry_signals[SIG_LAST];
 
 typedef void (*MediaDecorateCb) (GrlMedia *media,
                                  gpointer user_data,
@@ -91,8 +89,6 @@ struct _GrlSourcePrivate {
   GrlMediaType supported_media;
   guint auto_split_threshold;
   GrlPlugin *plugin;
-  GIcon *icon;
-  GPtrArray *tags;
 };
 
 typedef struct {
@@ -325,22 +321,6 @@ grl_source_class_init (GrlSourceClass *source_class)
                                                         G_PARAM_CONSTRUCT |
                                                         G_PARAM_STATIC_STRINGS));
   /**
-   * GrlSource:source-icon:
-   *
-   * #GIcon representing the source
-   *
-   * Since: 0.2.8
-   */
-  g_object_class_install_property (gobject_class,
-                                   PROP_ICON,
-                                   g_param_spec_object ("source-icon",
-                                                        "Source icon",
-                                                        "Icon representing the source",
-                                                        G_TYPE_ICON,
-                                                        G_PARAM_READWRITE |
-                                                        G_PARAM_CONSTRUCT |
-                                                        G_PARAM_STATIC_STRINGS));
-  /**
    * GrlSource:plugin:
    *
    * Plugin the source belongs to
@@ -409,75 +389,10 @@ grl_source_class_init (GrlSourceClass *source_class)
                                                        G_PARAM_STATIC_STRINGS));
 
   /**
-   * GrlSource:source-tags:
-   *
-   * A string array of tags relevant this source.
-   *
-   * The tags are arbitrary, and applications should just pass over the tags
-   * it does not understand. Applications would usually use this to either
-   * group sources together, or hide certain sources: a radio application
-   * would filter for %GRL_MEDIA_TYPE_AUDIO in GrlSource::supported-media as
-   * well as "radio" being listed in the tags.
-   *
-   * To avoid irrelevant content being listed in applications, sources
-   * such as generic video sites should not be tagged as "cinema" or
-   * "tv" as they contain a lot of content that's not either of those.
-   *
-   * This is a list of commonly used values:
-   *
-   * - "cinema", or "tv"
-   *   The content served is from cinema or TV sources. For example, a
-   *   source for movie trailers would select the former, a source for
-   *   streaming live TV would select the latter.
-   *
-   * - "radio"
-   *   The content served is from streaming radios.
-   *
-   * - "music"
-   *   The content served is music, for example, music stores such as
-   *   Jamendo or Magnatune.
-   *
-   * - "country:country-code"
-   *   The content is mostly relevant to users from a particular country,
-   *   such as a national broadcaster. For example, BBC content would be
-   *   tagged as "country:uk". Country codes should be an ISO-639-1 or
-   *   ISO-639-2 code.
-   *
-   * - "protocol:protocol-name"
-   *   The content browsing or searching uses a particular protocol, such
-   *   as DLNA/UPnP or DMAP/DAAP. This makes it easier to whitelist or
-   *   blacklist sources rather than matching the implementation specific
-   *   source ID. Examples are "protocol:dlna" and "protocol:dmap".
-   *
-   * - "localhost", or "localuser"
-   *   The content is served from the machine the application is running on,
-   *   or by an application the user is running. Applications might choose to
-   *   avoid showing the user's own data in their interfaces, or integrate it
-   *   in the user's local collection.
-   *
-   *   "net:local", or "net:internet"
-   *   The source requires a connection to the local network, or a connection
-   *   to the Internet. Sources with those tags will be automatically hidden
-   *   from the application's reach when such networks aren't available, or
-   *   we're not connected to a network.
-   *
-   * Since: 0.2.10
-   */
-  g_object_class_install_property (gobject_class,
-                                   PROP_SOURCE_TAGS,
-                                   g_param_spec_boxed ("source-tags",
-                                                       "Tags",
-                                                       "String array of tags relevant this source",
-                                                       G_TYPE_STRV,
-                                                       G_PARAM_READWRITE |
-                                                       G_PARAM_CONSTRUCT |
-                                                       G_PARAM_STATIC_STRINGS));
-
-  /**
    * GrlSource::content-changed:
    * @source: source that has changed
-   * @changed_medias: (element-type GrlMedia): a #GPtrArray with the medias
-   * that changed or a common ancestor of them of type #GrlMediaBox.
+   * @changed_medias: a #GPtrArray with the medias that changed or a common
+   * ancestor of them of type #GrlMediaBox.
    * @change_type: the kind of change that ocurred
    * @location_unknown: @TRUE if the change happened in @media itself or in one
    * of its direct children (when @media is a #GrlMediaBox). @FALSE otherwise
@@ -499,7 +414,7 @@ grl_source_class_init (GrlSourceClass *source_class)
    *
    * Since: 0.2.0
    */
-  source_signals[SIG_CONTENT_CHANGED] =
+  registry_signals[SIG_CONTENT_CHANGED] =
     g_signal_new("content-changed",
                  G_TYPE_FROM_CLASS (gobject_class),
                  G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
@@ -521,7 +436,6 @@ static void
 grl_source_init (GrlSource *source)
 {
   source->priv = GRL_SOURCE_GET_PRIVATE (source);
-  source->priv->tags = g_ptr_array_new_with_free_func (g_free);
 }
 
 static void
@@ -529,7 +443,10 @@ grl_source_dispose (GObject *object)
 {
   GrlSource *source = GRL_SOURCE (object);
 
-  g_clear_object (&source->priv->plugin);
+  if (source->priv->plugin) {
+    g_object_unref (source->priv->plugin);
+    source->priv->plugin = NULL;
+  }
 
   G_OBJECT_CLASS (grl_source_parent_class)->dispose (object);
 }
@@ -539,8 +456,6 @@ grl_source_finalize (GObject *object)
 {
   GrlSource *source = GRL_SOURCE (object);
 
-  g_clear_object (&source->priv->icon);
-  g_clear_pointer (&source->priv->tags, g_ptr_array_unref);
   g_free (source->priv->id);
   g_free (source->priv->name);
   g_free (source->priv->desc);
@@ -551,23 +466,10 @@ grl_source_finalize (GObject *object)
 static void
 set_string_property (gchar **property, const GValue *value)
 {
-  g_clear_pointer (property, g_free);
+  if (*property) {
+    g_free (*property);
+  }
   *property = g_value_dup_string (value);
-}
-
-static void
-grl_source_set_tags (GrlSource   *source,
-                     const char **strv)
-{
-  guint i;
-
-  g_ptr_array_set_size (source->priv->tags, 0);
-  if (strv == NULL)
-    return;
-
-  for (i = 0; strv[i] != NULL; i++)
-    g_ptr_array_add (source->priv->tags, g_strdup (strv[i]));
-  g_ptr_array_add (source->priv->tags, NULL);
 }
 
 static void
@@ -588,12 +490,10 @@ grl_source_set_property (GObject *object,
   case PROP_DESC:
     set_string_property (&source->priv->desc, value);
     break;
-  case PROP_ICON:
-    g_clear_object (&source->priv->icon);
-    source->priv->icon = g_value_dup_object (value);
-    break;
   case PROP_PLUGIN:
-    g_clear_object (&source->priv->plugin);
+    if (source->priv->plugin) {
+      g_object_unref (source->priv->plugin);
+    }
     source->priv->plugin = g_value_dup_object (value);
     break;
   case PROP_RANK:
@@ -604,9 +504,6 @@ grl_source_set_property (GObject *object,
     break;
   case PROP_SUPPORTED_MEDIA:
     source->priv->supported_media = g_value_get_flags (value);
-    break;
-  case PROP_SOURCE_TAGS:
-    grl_source_set_tags (source, g_value_get_boxed (value));
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (source, prop_id, pspec);
@@ -634,9 +531,6 @@ grl_source_get_property (GObject *object,
   case PROP_DESC:
     g_value_set_string (value, source->priv->desc);
     break;
-  case PROP_ICON:
-    g_value_set_object (value, source->priv->icon);
-    break;
   case PROP_PLUGIN:
     g_value_set_object (value, source->priv->plugin);
     break;
@@ -648,9 +542,6 @@ grl_source_get_property (GObject *object,
     break;
   case PROP_SUPPORTED_MEDIA:
     g_value_set_flags (value, source->priv->supported_media);
-    break;
-  case PROP_SOURCE_TAGS:
-    g_value_set_boxed (value, source->priv->tags->pdata);
     break;
   default:
     G_OBJECT_WARN_INVALID_PROPERTY_ID (source, prop_id, pspec);
@@ -1103,7 +994,6 @@ resolve_spec_free (GrlSourceResolveSpec *spec)
   g_object_unref (spec->source);
   g_object_unref (spec->media);
   g_object_unref (spec->options);
-  g_list_free (spec->keys);
   g_free (spec);
 }
 
@@ -1170,8 +1060,8 @@ resolve_relay_free (struct ResolveRelayCb *rrc)
   gpointer value;
 
   g_object_unref (rrc->source);
-  g_clear_object(&rrc->media);
-  g_clear_error (&rrc->error);
+  if (rrc->media)
+    g_object_unref (rrc->media);
   g_object_unref (rrc->options);
   g_list_free (rrc->keys);
 
@@ -1182,7 +1072,9 @@ resolve_relay_free (struct ResolveRelayCb *rrc)
     }
     g_hash_table_unref (rrc->map);
   }
-  g_clear_pointer (&rrc->resolve_specs, g_hash_table_unref);
+
+  if (rrc->resolve_specs)
+    g_hash_table_unref (rrc->resolve_specs);
 
   g_slice_free (struct ResolveRelayCb, rrc);
 }
@@ -1196,8 +1088,9 @@ browse_relay_free (struct BrowseRelayCb *brc)
   if (brc->auto_split) {
     g_slice_free (struct AutoSplitCtl, brc->auto_split);
   }
-  g_clear_pointer (&brc->queue, g_queue_free);
-
+  if (brc->queue) {
+    g_queue_free (brc->queue);
+  }
   g_slice_free (struct BrowseRelayCb, brc);
 }
 
@@ -1229,7 +1122,7 @@ store_metadata_relay_free (struct StoreMetadataRelayCb *smrc)
   g_list_free (smrc->failed_keys);
   g_hash_table_unref (smrc->map);
   g_list_free (smrc->use_sources);
-  g_list_free_full (smrc->specs, (GDestroyNotify) store_metadata_spec_free);
+  g_list_foreach (smrc->specs, (GFunc) store_metadata_spec_free, NULL);
 
   g_slice_free (struct StoreMetadataRelayCb, smrc);
 }
@@ -1426,7 +1319,6 @@ get_additional_sources (GrlSource *source,
                  GRL_METADATA_KEY_GET_NAME (key));
     }
   }
-  g_list_free (missing_keys);
 
   /* list_union() is used to remove doubles */
   return list_union (NULL, result, NULL);
@@ -1515,8 +1407,8 @@ map_node_free (MapNode *node)
 static void
 map_list_nodes_free (GList *nodes)
 {
-
-  g_list_free_full (nodes, (GDestroyNotify) map_node_free);
+  g_list_foreach (nodes, (GFunc) map_node_free, NULL);
+  g_list_free (nodes);
 }
 
 /*
@@ -1822,7 +1714,9 @@ media_decorate_cb (GrlSource *source,
                             _("Operation was cancelled"));
     }
     mdd->callback (media, mdd->user_data, _error);
-    g_clear_error (&_error);
+    if (_error) {
+      g_error_free (_error);
+    }
     g_object_unref (mdd->source);
     g_hash_table_unref (mdd->pending_callbacks);
     g_slice_free (struct MediaDecorateData, mdd);
@@ -1845,11 +1739,11 @@ media_decorate (GrlSource *main_source,
   GrlOperationOptions *supported_options;
   GrlResolutionFlags flags;
 
-  flags = grl_operation_options_get_resolution_flags (options);
+  flags = grl_operation_options_get_flags (options);
   if (flags & GRL_RESOLVE_FULL) {
     decorate_options = grl_operation_options_copy (options);
-    grl_operation_options_set_resolution_flags (decorate_options,
-                                                flags & ~GRL_RESOLVE_FULL);
+    grl_operation_options_set_flags (decorate_options,
+                                     flags & ~GRL_RESOLVE_FULL);
   } else {
     decorate_options = g_object_ref (options);
   }
@@ -1907,11 +1801,6 @@ media_from_uri_result_relay_cb (GrlSource *source,
   /* Free specs */
   media_from_uri_spec_free (rrc->spec.mfu);
 
-  /* Append the source-id in case it is not set */
-  if (media && !grl_data_get_string (GRL_DATA (media), GRL_METADATA_KEY_SOURCE)) {
-    grl_data_set_string (GRL_DATA (media), GRL_METADATA_KEY_SOURCE, grl_source_get_id (source));
-  }
-
   /* Check if cancelled */
   if (operation_is_cancelled (rrc->operation_id)) {
     /* if the plugin already set an error, we don't care because we're
@@ -1932,7 +1821,7 @@ media_from_uri_result_relay_cb (GrlSource *source,
     return;
   }
 
-  if (grl_operation_options_get_resolution_flags (rrc->options) & GRL_RESOLVE_FULL) {
+  if (grl_operation_options_get_flags (rrc->options) & GRL_RESOLVE_FULL) {
     /* Check if there are unsolved keys that need to be solved by other
        sources */
     unknown_keys = filter_known_keys (media, rrc->keys);
@@ -2024,21 +1913,17 @@ resolve_result_relay_cb (GrlSource *source,
 
     rrc->specs_to_invoke = g_hash_table_get_values (rrc->resolve_specs);
     if (rrc->specs_to_invoke) {
-      guint id;
-      id = g_idle_add_full (grl_operation_options_get_resolution_flags (rrc->options) & GRL_RESOLVE_IDLE_RELAY?
-                            G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
-                            resolve_idle,
-                            rrc,
-                            NULL);
-      g_source_set_name_by_id (id, "[grilo] resolve_idle");
+      g_idle_add_full (grl_operation_options_get_flags (rrc->options) & GRL_RESOLVE_IDLE_RELAY?
+                       G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
+                       resolve_idle,
+                       rrc,
+                       NULL);
     } else {
-      guint id;
-      id = g_idle_add_full (grl_operation_options_get_resolution_flags (rrc->options) & GRL_RESOLVE_IDLE_RELAY?
-                            G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
-                            resolve_all_done,
-                            rrc,
-                            NULL);
-      g_source_set_name_by_id (id, "[grilo] resolve_all_done");
+      g_idle_add_full (grl_operation_options_get_flags (rrc->options) & GRL_RESOLVE_IDLE_RELAY?
+                       G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
+                       resolve_all_done,
+                       rrc,
+                       NULL);
     }
   }
 }
@@ -2071,7 +1956,9 @@ queue_process (gpointer user_data)
                             0, brc->user_data, error);
         g_error_free (error);
       }
-      g_clear_error (&qelement->error);
+      if (qelement->error) {
+        g_error_free (qelement->error);
+      }
       g_free (qelement);
     }
     if (g_queue_is_empty (brc->queue)) {
@@ -2088,7 +1975,9 @@ queue_process (gpointer user_data)
   remaining = qelement->remaining;
   brc->user_callback (brc->source, brc->operation_id, qelement->media,
                       remaining, brc->user_data, qelement->error);
-  g_clear_error (&qelement->error);
+  if (qelement->error) {
+    g_error_free (qelement->error);
+  }
   g_free (qelement);
 
   if (remaining == 0) {
@@ -2112,8 +2001,7 @@ queue_start_process (struct BrowseRelayCb *brc)
   if (!brc->dispatcher_running) {
     qelement = g_queue_peek_head (brc->queue);
     if (qelement && qelement->is_ready) {
-      guint id = g_idle_add (queue_process,  brc);
-      g_source_set_name_by_id (id, "[grilo] queue_process");
+      g_idle_add (queue_process,  brc);
       brc->dispatcher_running = TRUE;
     }
   }
@@ -2167,7 +2055,7 @@ queue_add_media (struct BrowseRelayCb *brc,
   qelement->remaining = remaining;
   /* Media is ready if we do not need to ask other sources to complete it */
   qelement->is_ready = TRUE;
-  if (grl_operation_options_get_resolution_flags (brc->options) & GRL_RESOLVE_FULL) {
+  if (grl_operation_options_get_flags (brc->options) & GRL_RESOLVE_FULL) {
     unknown_keys = filter_known_keys (media, brc->keys);
     if (unknown_keys) {
       qelement->is_ready = FALSE;
@@ -2216,7 +2104,6 @@ auto_split_setup (GrlSource *source,
 static void
 auto_split_run_next_chunk (struct BrowseRelayCb *brc)
 {
-  guint id;
   brc->auto_split->chunk_remaining = MIN (brc->auto_split->threshold,
                                           brc->auto_split->total_remaining);
 
@@ -2230,12 +2117,11 @@ auto_split_run_next_chunk (struct BrowseRelayCb *brc)
     GRL_DEBUG ("auto-split: requesting chunk (skip=%u, count=%u)",
                grl_operation_options_get_skip (brc->spec.browse->options),
                grl_operation_options_get_count (brc->spec.browse->options));
-    id = g_idle_add_full (grl_operation_options_get_resolution_flags (brc->options) & GRL_RESOLVE_IDLE_RELAY?
-                          G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
-                          browse_idle,
-                          brc->spec.browse,
-                          NULL);
-    g_source_set_name_by_id (id, "[grilo] browse_idle");
+    g_idle_add_full (grl_operation_options_get_flags (brc->options) & GRL_RESOLVE_IDLE_RELAY?
+                     G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
+                     browse_idle,
+                     brc->spec.browse,
+                     NULL);
     break;
   case GRL_OP_SEARCH:
     grl_operation_options_set_skip (brc->spec.search->options,
@@ -2246,12 +2132,11 @@ auto_split_run_next_chunk (struct BrowseRelayCb *brc)
     GRL_DEBUG ("auto-split: requesting chunk (skip=%u, count=%u)",
                grl_operation_options_get_skip (brc->spec.search->options),
                grl_operation_options_get_count (brc->spec.search->options));
-    id = g_idle_add_full (grl_operation_options_get_resolution_flags (brc->options) & GRL_RESOLVE_IDLE_RELAY?
-                          G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
-                          search_idle,
-                          brc->spec.search,
-                          NULL);
-    g_source_set_name_by_id (id, "[grilo] search_idle");
+    g_idle_add_full (grl_operation_options_get_flags (brc->options) & GRL_RESOLVE_IDLE_RELAY?
+                     G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
+                     search_idle,
+                     brc->spec.search,
+                     NULL);
     break;
   case GRL_OP_QUERY:
     grl_operation_options_set_skip (brc->spec.query->options,
@@ -2262,12 +2147,11 @@ auto_split_run_next_chunk (struct BrowseRelayCb *brc)
     GRL_DEBUG ("auto-split: requesting chunk (skip=%u, count=%u)",
                grl_operation_options_get_skip (brc->spec.query->options),
                grl_operation_options_get_count (brc->spec.query->options));
-    id = g_idle_add_full (grl_operation_options_get_resolution_flags (brc->options) & GRL_RESOLVE_IDLE_RELAY?
-                          G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
-                          query_idle,
-                          brc->spec.query,
-                          NULL);
-    g_source_set_name_by_id (id, "[grilo] query_idle");
+    g_idle_add_full (grl_operation_options_get_flags (brc->options) & GRL_RESOLVE_IDLE_RELAY?
+                     G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
+                     query_idle,
+                     brc->spec.query,
+                     NULL);
     break;
   default:
     g_assert_not_reached ();
@@ -2293,14 +2177,18 @@ browse_result_relay_cb (GrlSource *source,
     GRL_WARNING ("Source '%s' emitted 'remaining=0' more than once "
                  "for operation %d",
                  grl_source_get_id (source), operation_id);
-    g_clear_object (&media);
+    if (media) {
+      g_object_unref (media);
+    }
     return;
   }
 
   /* Check if cancelled */
   if (operation_is_cancelled (operation_id)) {
     GRL_DEBUG ("Operation is cancelled, skipping result until getting the last one");
-    g_clear_object (&media);
+    if (media) {
+      g_object_unref (media);
+    }
     /* Wait for the last element */
     if (remaining > 0) {
       return;
@@ -2338,7 +2226,7 @@ browse_result_relay_cb (GrlSource *source,
   }
 
   /* If we need further processing of media, put it in a queue */
-  if (grl_operation_options_get_resolution_flags (brc->options) &
+  if (grl_operation_options_get_flags (brc->options) &
       (GRL_RESOLVE_FULL | GRL_RESOLVE_IDLE_RELAY)) {
     queue_add_media (brc, media, remaining, error);
   } else {
@@ -2397,8 +2285,7 @@ resolve_idle (gpointer user_data)
     resolve_result_relay_cb (rrc->source, rrc->operation_id, rrc->media, rrc, NULL);
   } else {
     rs = rrc->specs_to_invoke->data;
-    rrc->specs_to_invoke = g_list_delete_link (rrc->specs_to_invoke,
-                                               rrc->specs_to_invoke);
+    rrc->specs_to_invoke = g_list_next (rrc->specs_to_invoke);
     run_next = (rrc->specs_to_invoke != NULL);
 
     /* Put the specific keys in rs also into rrc */
@@ -2424,7 +2311,9 @@ resolve_all_done (gpointer user_data)
   GRL_DEBUG (__FUNCTION__);
 
   if (operation_is_cancelled (rrc->operation_id)) {
-    g_clear_error (&rrc->error);
+    if (rrc->error) {
+      g_error_free (rrc->error);
+    }
     rrc->error = g_error_new (GRL_CORE_ERROR,
                               GRL_CORE_ERROR_OPERATION_CANCELLED,
                               _("Operation was cancelled"));
@@ -2560,7 +2449,8 @@ multiple_result_async_cb (GrlSource *source,
     ds->error = g_error_copy (error);
 
     /* Free previous results */
-    g_list_free_full (ds->data, g_object_unref);
+    g_list_foreach (ds->data, (GFunc) g_object_unref, NULL);
+    g_list_free (ds->data);
 
     ds->data = NULL;
     ds->complete = TRUE;
@@ -2720,7 +2610,7 @@ store_relay_cb (GrlSource *source,
   if (error || !(src->flags & GRL_WRITE_FULL)) {
     if (src->user_callback)
       src->user_callback (source, media, failed_keys, src->user_data, error);
-  } else if (failed_keys != NULL) {
+  } else {
     run_store_metadata (source, media, failed_keys, GRL_WRITE_FULL,
                         src->user_callback, src->user_data);
   }
@@ -2763,7 +2653,9 @@ store_metadata_ctl_cb (GrlSource *source,
                            smrc->failed_keys,
                            smrc->user_data,
                            own_error);
-      g_clear_error (&own_error);
+      if (own_error) {
+        g_error_free (own_error);
+      }
     }
     store_metadata_relay_free (smrc);
   }
@@ -2822,7 +2714,6 @@ run_store_metadata (GrlSource *source,
   GList *failed_keys = NULL;
   GError *error;
   struct StoreMetadataRelayCb *smrc;
-  guint id;
 
   map = map_writable_keys (source, keys, flags, &failed_keys);
 
@@ -2851,8 +2742,7 @@ run_store_metadata (GrlSource *source,
   smrc->user_callback = callback;
   smrc->user_data = user_data;
 
-  id = g_idle_add (store_metadata_idle, smrc);
-  g_source_set_name_by_id (id, "[grilo] store_metadata_idle");
+  g_idle_add (store_metadata_idle, smrc);
 }
 
 static gboolean
@@ -2983,22 +2873,6 @@ grl_source_get_name (GrlSource *source)
 }
 
 /**
- * grl_source_get_icon:
- * @source: a source
- *
- * Returns: (transfer none): a #GIcon
- *
- * Since: 0.2.8
- */
-GIcon *
-grl_source_get_icon (GrlSource *source)
-{
-  g_return_val_if_fail (GRL_IS_SOURCE (source), NULL);
-
-  return source->priv->icon;
-}
-
-/**
  * grl_source_get_description:
  * @source: a source
  *
@@ -3012,22 +2886,6 @@ grl_source_get_description (GrlSource *source)
   g_return_val_if_fail (GRL_IS_SOURCE (source), NULL);
 
   return source->priv->desc;
-}
-
-/**
- * grl_source_get_tags:
- * @source: a source
- *
- * Returns: (element-type utf8) (transfer none): a %NULL-terminated list of tags
- *
- * Since: 0.2.10
- */
-const char **
-grl_source_get_tags (GrlSource *source)
-{
-  g_return_val_if_fail (GRL_IS_SOURCE (source), NULL);
-
-  return (const char **) source->priv->tags->pdata;
 }
 
 /**
@@ -3128,9 +2986,6 @@ grl_source_supported_operations (GrlSource *source)
   }
   if (source_class->store_metadata) {
     ops |= GRL_OP_STORE_METADATA;
-  }
-  if (source_class->store) {
-    ops |= GRL_OP_STORE;
   }
 
   if (source_class->notify_change_start &&
@@ -3248,7 +3103,7 @@ grl_source_resolve (GrlSource *source,
   /* By default assume we will use the parameters specified by the user */
   _keys = filter_known_keys (media, (GList *) keys);
 
-  flags = grl_operation_options_get_resolution_flags (options);
+  flags = grl_operation_options_get_flags (options);
 
   if (flags & GRL_RESOLVE_FULL) {
     GRL_DEBUG ("requested full metadata");
@@ -3262,7 +3117,7 @@ grl_source_resolve (GrlSource *source,
     }
     flags &= ~GRL_RESOLVE_FULL;
     resolve_options = grl_operation_options_copy (options);
-    grl_operation_options_set_resolution_flags (resolve_options, flags);
+    grl_operation_options_set_flags (resolve_options, flags);
   } else {
     /* Consider only this source, if it supports resolve() */
     if (grl_source_supported_operations (source) & GRL_OP_RESOLVE) {
@@ -3293,14 +3148,11 @@ grl_source_resolve (GrlSource *source,
 
   /* If there are no sources able to solve just send the media */
   if (g_list_length (sources) == 0) {
-    guint id;
-    g_list_free (_keys);
-    id = g_idle_add_full (flags & GRL_RESOLVE_IDLE_RELAY?
-                          G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
-                          resolve_all_done,
-                          rrc,
-                          NULL);
-    g_source_set_name_by_id (id, "[grilo] resolve_all_done");
+    g_idle_add_full (flags & GRL_RESOLVE_IDLE_RELAY?
+                     G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
+                     resolve_all_done,
+                     rrc,
+                     NULL);
     return operation_id;
   }
 
@@ -3328,21 +3180,17 @@ grl_source_resolve (GrlSource *source,
 
   rrc->specs_to_invoke = g_hash_table_get_values (rrc->resolve_specs);
   if (rrc->specs_to_invoke) {
-    guint id;
-    id = g_idle_add_full (flags & GRL_RESOLVE_IDLE_RELAY?
-                          G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
-                          resolve_idle,
-                          rrc,
-                          NULL);
-    g_source_set_name_by_id (id, "[grilo] resolve_idle");
+    g_idle_add_full (flags & GRL_RESOLVE_IDLE_RELAY?
+                     G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
+                     resolve_idle,
+                     rrc,
+                     NULL);
   } else {
-    guint id;
-    id = g_idle_add_full (flags & GRL_RESOLVE_IDLE_RELAY?
-                          G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
-                          resolve_all_done,
-                          rrc,
-                          NULL);
-    g_source_set_name_by_id (id, "[grilo] resolve_all_done");
+    g_idle_add_full (flags & GRL_RESOLVE_IDLE_RELAY?
+                     G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
+                     resolve_all_done,
+                     rrc,
+                     NULL);
   }
 
   return operation_id;
@@ -3535,7 +3383,6 @@ grl_source_get_media_from_uri (GrlSource *source,
   struct ResolveRelayCb *rrc;
   guint operation_id;
   GrlResolutionFlags flags;
-  guint id;
 
   GRL_DEBUG (__FUNCTION__);
 
@@ -3549,7 +3396,7 @@ grl_source_get_media_from_uri (GrlSource *source,
   g_return_val_if_fail (check_options (source, GRL_OP_MEDIA_FROM_URI, options), 0);
 
   _keys = g_list_copy ((GList *) keys);
-  flags = grl_operation_options_get_resolution_flags (options);
+  flags = grl_operation_options_get_flags (options);
 
   if (flags & GRL_RESOLVE_FAST_ONLY) {
     filter_slow (source, &_keys, FALSE);
@@ -3593,12 +3440,11 @@ grl_source_get_media_from_uri (GrlSource *source,
 
   operation_set_ongoing (source, operation_id);
 
-  id = g_idle_add_full (flags & GRL_RESOLVE_IDLE_RELAY?
-                        G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
-                        media_from_uri_idle,
-                        mfus,
-                        NULL);
-  g_source_set_name_by_id (id, "[grilo] media_from_uri_idle");
+  g_idle_add_full (flags & GRL_RESOLVE_IDLE_RELAY?
+                   G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
+                   media_from_uri_idle,
+                   mfus,
+                   NULL);
 
   return operation_id;
 }
@@ -3689,7 +3535,6 @@ grl_source_browse (GrlSource *source,
   guint operation_id;
   struct BrowseRelayCb *brc;
   GrlResolutionFlags flags;
-  guint id;
 
   g_return_val_if_fail (GRL_IS_SOURCE (source), 0);
   g_return_val_if_fail (GRL_IS_OPERATION_OPTIONS (options), 0);
@@ -3701,7 +3546,7 @@ grl_source_browse (GrlSource *source,
   /* By default assume we will use the parameters specified by the user */
   _keys = g_list_copy ((GList *) keys);
 
-  flags = grl_operation_options_get_resolution_flags (options);
+  flags = grl_operation_options_get_flags (options);
 
   if (flags & GRL_RESOLVE_FAST_ONLY) {
     GRL_DEBUG ("requested fast keys");
@@ -3758,11 +3603,10 @@ grl_source_browse (GrlSource *source,
 
   operation_set_ongoing (source, operation_id);
 
-  id = g_idle_add_full (flags & GRL_RESOLVE_IDLE_RELAY? G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
-                        browse_idle,
-                        bs,
-                        NULL);
-  g_source_set_name_by_id (id, "[grilo] browse_idle");
+  g_idle_add_full (flags & GRL_RESOLVE_IDLE_RELAY? G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
+                   browse_idle,
+                   bs,
+                   NULL);
 
   return operation_id;
 }
@@ -3781,7 +3625,7 @@ grl_source_browse (GrlSource *source,
  *
  * This method is synchronous.
  *
- * Returns: (element-type GrlMedia) (transfer full): a #GList with #GrlMedia
+ * Returns: (element-type Grl.Media) (transfer full): a #GList with #GrlMedia
  * elements. After use g_object_unref() every element and g_list_free() the
  * list.
  *
@@ -3857,7 +3701,6 @@ grl_source_search (GrlSource *source,
   guint operation_id;
   struct BrowseRelayCb *brc;
   GrlResolutionFlags flags;
-  guint id;
 
   g_return_val_if_fail (GRL_IS_SOURCE (source), 0);
   g_return_val_if_fail (GRL_IS_OPERATION_OPTIONS (options), 0);
@@ -3869,7 +3712,7 @@ grl_source_search (GrlSource *source,
   /* By default assume we will use the parameters specified by the user */
   _keys = g_list_copy ((GList *) keys);
 
-  flags = grl_operation_options_get_resolution_flags (options);
+  flags = grl_operation_options_get_flags (options);
 
   if (flags & GRL_RESOLVE_FAST_ONLY) {
     GRL_DEBUG ("requested fast keys");
@@ -3917,11 +3760,10 @@ grl_source_search (GrlSource *source,
 
   operation_set_ongoing (source, operation_id);
 
-  id = g_idle_add_full (flags & GRL_RESOLVE_IDLE_RELAY? G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
-                        search_idle,
-                        ss,
-                        NULL);
-  g_source_set_name_by_id (id, "[grilo] search_idle");
+  g_idle_add_full (flags & GRL_RESOLVE_IDLE_RELAY? G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
+                   search_idle,
+                   ss,
+                   NULL);
 
   return operation_id;
 }
@@ -3944,7 +3786,7 @@ grl_source_search (GrlSource *source,
  *
  * This method is synchronous.
  *
- * Returns: (element-type GrlMedia) (transfer full): a #GList with #GrlMedia
+ * Returns: (element-type Grl.Media) (transfer full): a #GList with #GrlMedia
  * elements. After use g_object_unref() every element and g_list_free() the
  * list.
  *
@@ -4019,7 +3861,6 @@ grl_source_query (GrlSource *source,
   guint operation_id;
   struct BrowseRelayCb *brc;
   GrlResolutionFlags flags;
-  guint id;
 
   g_return_val_if_fail (GRL_IS_SOURCE (source), 0);
   g_return_val_if_fail (GRL_IS_OPERATION_OPTIONS (options), 0);
@@ -4032,7 +3873,7 @@ grl_source_query (GrlSource *source,
   /* By default assume we will use the parameters specified by the user */
   _keys = g_list_copy ((GList *) keys);
 
-  flags = grl_operation_options_get_resolution_flags (options);
+  flags = grl_operation_options_get_flags (options);
 
   if (flags & GRL_RESOLVE_FAST_ONLY) {
     GRL_DEBUG ("requested fast keys");
@@ -4079,11 +3920,10 @@ grl_source_query (GrlSource *source,
 
   operation_set_ongoing (source, operation_id);
 
-  id = g_idle_add_full (flags & GRL_RESOLVE_IDLE_RELAY? G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
-                        query_idle,
-                        qs,
-                        NULL);
-  g_source_set_name_by_id (id, "[grilo] query_idle");
+  g_idle_add_full (flags & GRL_RESOLVE_IDLE_RELAY? G_PRIORITY_DEFAULT_IDLE: G_PRIORITY_HIGH_IDLE,
+                   query_idle,
+                   qs,
+                   NULL);
 
   return operation_id;
 }
@@ -4102,7 +3942,7 @@ grl_source_query (GrlSource *source,
  *
  * This method is synchronous.
  *
- * Returns: (element-type GrlMedia) (transfer full): a #GList with #GrlMedia
+ * Returns: (element-type Grl.Media) (transfer full): a #GList with #GrlMedia
  * elements. After use g_object_unref() every element and g_list_free() the
  * list.
  *
@@ -4151,7 +3991,6 @@ grl_source_store_remove_impl (GrlSource *source,
   const gchar *id;
   struct RemoveRelayCb *rrc;
   GrlSourceRemoveSpec *rs;
-  guint tag_id;
 
   GRL_DEBUG (__FUNCTION__);
 
@@ -4185,8 +4024,7 @@ grl_source_store_remove_impl (GrlSource *source,
     rrc->spec = rs;
   }
 
-  tag_id = g_idle_add (remove_idle, rrc);
-  g_source_set_name_by_id (tag_id, "[grilo] remove_idle");
+  g_idle_add (remove_idle, rrc);
 
   return TRUE;
 }
@@ -4261,7 +4099,6 @@ grl_source_store_impl (GrlSource *source,
 {
   struct StoreRelayCb *src;
   GrlSourceStoreSpec *ss;
-  guint id;
 
   GRL_DEBUG (__FUNCTION__);
 
@@ -4289,8 +4126,7 @@ grl_source_store_impl (GrlSource *source,
 
   src->spec = ss;
 
-  id = g_idle_add (store_idle, ss);
-  g_source_set_name_by_id (id, "[grilo] store_idle");
+  g_idle_add (store_idle, ss);
 
   return TRUE;
 }
@@ -4388,13 +4224,14 @@ grl_source_store_metadata_impl (GrlSource *source,
  * grl_source_store_metadata:
  * @source: a metadata source
  * @media: the #GrlMedia object that we want to operate on.
- * @keys: (element-type GrlKeyID) (allow-none): a list
+ * @keys: (element-type Grl.KeyID) (allow-none): a list
  * of #GrlKeyID whose values we want to change.
  * @flags: Flags to configure specific behaviors of the operation.
  * @callback: (scope notified): the callback to execute when the operation is finished.
  * @user_data: user data set for the @callback
  *
- * Get the values for @keys from @media and store it permanently. After
+ * This is the main method of the #GrlMetadataSource class. It will
+ * get the values for @keys from @media and store it permanently. After
  * calling this method, future queries that return this media object
  * shall return this new values for the selected keys.
  *
@@ -4528,7 +4365,7 @@ grl_source_notify_change_stop (GrlSource *source,
 /**
  * grl_source_notify_change_list:
  * @source: a source
- * @changed_medias: (element-type GrlMedia) (transfer full): the list of
+ * @changed_medias: (element-type Grl.Media) (transfer full):: the list of
  * medias that have changed
  * @change_type: the type of change
  * @location_unknown: if change has happpened in @media or any descendant
@@ -4570,7 +4407,7 @@ void grl_source_notify_change_list (GrlSource *source,
   g_ptr_array_set_free_func (changed_medias, (GDestroyNotify) g_object_unref);
 
   g_signal_emit (source,
-                 source_signals[SIG_CONTENT_CHANGED],
+                 registry_signals[SIG_CONTENT_CHANGED],
                  0,
                  changed_medias,
                  change_type,

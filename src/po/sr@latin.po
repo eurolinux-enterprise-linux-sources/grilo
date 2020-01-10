@@ -1,15 +1,14 @@
-# Serbian translation for grilo-plugins.
-# Courtesy of Prevod.org team (http://prevod.org/) -- 2013—2014.
+# Serbian translation for grilo.
 # Copyright (C) 2013 grilo's COPYRIGHT HOLDER
 # This file is distributed under the same license as the grilo package.
-# Miroslav Nikolić <miroslavnikolic@rocketmail.com>, 2013—2014.
+# Miroslav Nikolić <miroslavnikolic@rocketmail.com>, 2013.
 msgid ""
 msgstr ""
-"Project-Id-Version: grilo\n"
+"Project-Id-Version: grilo master\n"
 "Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=grilo&"
 "keywords=I18N+L10N&component=general\n"
-"POT-Creation-Date: 2014-03-21 04:32+0000\n"
-"PO-Revision-Date: 2014-03-23 11:24+0200\n"
+"POT-Creation-Date: 2013-03-23 22:57+0000\n"
+"PO-Revision-Date: 2013-03-24 06:38+0200\n"
 "Last-Translator: Miroslav Nikolić <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: Serbian <gnom@prevod.org>\n"
 "Language: sr\n"
@@ -20,88 +19,86 @@ msgstr ""
 "n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Project-Style: gnome\n"
 
-#: ../libs/net/grl-net-mock.c:86
+#: ../libs/net/grl-net-mock.c:80
 msgid "No mock definition found"
-msgstr "Nisam našao prividnu odrednicu"
+msgstr "Nisam pronašao prividnu odrednicu"
 
-#: ../libs/net/grl-net-mock.c:98
+#: ../libs/net/grl-net-mock.c:90
 #, c-format
-#| msgid "Cannot find media %s"
 msgid "Could not find mock content %s"
 msgstr "Ne mog da pronađem prividni sadržaj „%s“"
 
-#: ../libs/net/grl-net-mock.c:118
+#: ../libs/net/grl-net-mock.c:108
 msgid "Could not access mock content"
-msgstr "Ne mogu da pristupim prividnom sadržaju"
+msgstr "Ne mog da pristupim prividnom sadržaju"
 
-#: ../libs/net/grl-net-wc.c:466
+#: ../libs/net/grl-net-private.c:56
 msgid "Cannot connect to the server"
 msgstr "Ne mogu da se povežem sa serverom"
 
-#: ../libs/net/grl-net-wc.c:472
+#: ../libs/net/grl-net-private.c:62
 msgid "Cannot connect to the proxy server"
-msgstr "Ne mogu da se povežem sa posredničkim serverom"
+msgstr "Ne mogu da se povežem na posrednički server"
 
-#: ../libs/net/grl-net-wc.c:479
+#: ../libs/net/grl-net-private.c:69
 #, c-format
 msgid "Invalid request URI or header: %s"
 msgstr "Neispravna putanja ili zaglavlje zahteva: %s"
 
-#: ../libs/net/grl-net-wc.c:486
+#: ../libs/net/grl-net-private.c:76
 #, c-format
 msgid "Authentication required: %s"
 msgstr "Potrebno je potvrđivanje identiteta: %s"
 
-#: ../libs/net/grl-net-wc.c:491
+#: ../libs/net/grl-net-private.c:81
 #, c-format
 msgid "The requested resource was not found: %s"
 msgstr "Traženo izvorište nije pronađeno: %s"
 
-#: ../libs/net/grl-net-wc.c:498
+#: ../libs/net/grl-net-private.c:88
 #, c-format
 msgid "The entry has been modified since it was downloaded: %s"
 msgstr "Unos je izmenjen od kada je preuzet: %s"
 
-#: ../libs/net/grl-net-wc.c:504 ../libs/net/grl-net-wc.c:613
-#: ../libs/pls/grl-pls.c:490 ../src/grl-source.c:1815 ../src/grl-source.c:1910
-#: ../src/grl-source.c:2057 ../src/grl-source.c:2298 ../src/grl-source.c:2418
+#: ../libs/net/grl-net-private.c:94 ../libs/net/grl-net-soup-unstable.c:188
+#: ../src/grl-source.c:1714 ../src/grl-source.c:1811 ../src/grl-source.c:1954
+#: ../src/grl-source.c:2198 ../src/grl-source.c:2319
 #, c-format
 msgid "Operation was cancelled"
 msgstr "Radnja je otkazana"
 
-#: ../libs/net/grl-net-wc.c:507
+#: ../libs/net/grl-net-private.c:97
 #, c-format
 msgid "Unhandled status: %s"
 msgstr "Nepodržano stanje: %s"
 
-#: ../libs/net/grl-net-wc.c:617 ../libs/net/grl-net-wc.c:658
-#| msgid "\"source-id\" not available"
+#: ../libs/net/grl-net-soup-stable.c:92
+#, c-format
+msgid "Malformed URL %s"
+msgstr "Loša adresa „%s“"
+
+#: ../libs/net/grl-net-soup-unstable.c:192
+#: ../libs/net/grl-net-soup-unstable.c:234
 msgid "Data not available"
 msgstr "Podaci nisu dostupni"
 
-#: ../libs/net/grl-net-wc.c:711
-#, c-format
-#| msgid "Invalid identifier %s"
-msgid "Invalid URL %s"
-msgstr "Neispravna adresa „%s“"
-
-#: ../src/grilo.c:208
+#: ../src/grilo.c:181
 msgid "Semicolon-separated paths containing Grilo plugins"
 msgstr "Zapetačkom razdvojene putanje koje sadrže priključke Grila"
 
-#: ../src/grilo.c:210
+#: ../src/grilo.c:183
 msgid "Colon-separated paths containing Grilo plugins"
 msgstr "Dvotačkom razdvojene putanje koje sadrže priključke Grila"
 
-#: ../src/grilo.c:213
+#: ../src/grilo.c:186
 msgid "Colon-separated list of Grilo plugins to use"
 msgstr "Dvotačkom razdvojen spisak priključaka Grila za korišćenje"
 
-#: ../src/grilo.c:218
+#: ../src/grilo.c:191
 msgid "Grilo Options"
 msgstr "Mogućnosti Grila"
 
-#: ../src/grilo.c:219
+#: ../src/grilo.c:192
 msgid "Show Grilo Options"
 msgstr "Pokazuje mogućnosti Grila"
 
@@ -110,162 +107,87 @@ msgstr "Pokazuje mogućnosti Grila"
 msgid "No searchable sources available"
 msgstr "Nema dostupnih pretraživih izvora"
 
-#: ../src/grl-multiple.c:487
+#: ../src/grl-multiple.c:488
 #, c-format
-#| msgid "Cannot get media from %s"
 msgid "Could not resolve media for URI '%s'"
 msgstr "Ne mogu da rešim medij za putanjom „%s“"
 
-#: ../src/grl-registry.c:360 ../src/grl-registry.c:1153
+#: ../src/grl-registry.c:328 ../src/grl-registry.c:1002
 #, c-format
 msgid "Plugin '%s' is already loaded"
 msgstr "Priključak „%s“ je već učitan"
 
-#: ../src/grl-registry.c:372
+#: ../src/grl-registry.c:340
 #, c-format
-msgid "Failed to initialize plugin from %s"
-msgstr "Nisam uspeo da pokrenem priključak iz „%s“"
+msgid "Failed to initialize plugin from %so"
+msgstr "Nisam uspeo da pokrenem priključak iz %so"
 
-#: ../src/grl-registry.c:554
-#, c-format
-msgid "Metadata key '%s' cannot be registered"
-msgstr "Ključ metapodataka „%s“ ne može biti zabeležen"
-
-#: ../src/grl-registry.c:885
+#: ../src/grl-registry.c:734
 #, c-format
 msgid "Source with id '%s' was not found"
 msgstr "Nisam pronašao izvor sa ib-om „%s“"
 
-#: ../src/grl-registry.c:948
+#: ../src/grl-registry.c:797
 #, c-format
-#| msgid "Failed to store: %s"
 msgid "Failed to load plugin from %s"
-msgstr "Nisam uspeo da učitam priključak iz „%s“"
+msgstr "Nisam uspeo da učitam priključak iz %s"
 
-#: ../src/grl-registry.c:957
+#: ../src/grl-registry.c:806
 #, c-format
-#| msgid "Invalid identifier %s"
 msgid "Invalid plugin file %s"
 msgstr "Neispravna datoteka priključka „%s“"
 
-#: ../src/grl-registry.c:968
+#: ../src/grl-registry.c:817
 #, c-format
 msgid "'%s' is not a valid plugin file"
 msgstr "„%s“ nije ispravna datoteka priključka"
 
-#: ../src/grl-registry.c:987
+#: ../src/grl-registry.c:836
 #, c-format
-#| msgid "Unable to listen for changes in %s"
 msgid "Unable to load plugin '%s'"
 msgstr "Ne mogu da učitam priključak „%s“"
 
-#: ../src/grl-registry.c:998
+#: ../src/grl-registry.c:847
 #, c-format
 msgid "Plugin '%s' already exists"
-msgstr "Već postoji priključak „%s“"
+msgstr "Priključak „%s“ već postoji"
 
-#: ../src/grl-registry.c:1095
+#: ../src/grl-registry.c:944
 #, c-format
 msgid "All configured plugin paths are invalid"
 msgstr "Sve podešene putanje priključaka su neispravne"
 
-#: ../src/grl-registry.c:1142
+#: ../src/grl-registry.c:991
 #, c-format
-#| msgid "\"source-id\" not available"
 msgid "Plugin '%s' not available"
 msgstr "Priključak „%s“ nije dostupan"
 
-#: ../src/grl-registry.c:1363
+#: ../src/grl-registry.c:1212
 #, c-format
 msgid "Plugin not found: '%s'"
-msgstr "Nisam našao priključak: „%s“"
+msgstr "Nisam pronašao priključak: „%s“"
 
-#: ../src/grl-registry.c:1713
+#: ../src/grl-registry.c:1294
+#, c-format
+msgid "Metadata key '%s' cannot be registered"
+msgstr "Ključ meta podataka „%s“ ne može biti zabeležen"
+
+#: ../src/grl-registry.c:1585
 #, c-format
 msgid "Plugin configuration does not contain 'plugin-id' reference"
 msgstr "Podešavanje priključka ne sadrži uputu „plugin-id“ (ib-priključka)"
 
-#: ../src/grl-source.c:2747
+#: ../src/grl-source.c:2649
 #, c-format
 msgid "Some keys could not be written"
 msgstr "Ne mogu da zapišem neke ključeve"
 
-#: ../src/grl-source.c:2820
+#: ../src/grl-source.c:2723
 #, c-format
-#| msgid "specified keys are not writable"
 msgid "None of the specified keys are writable"
-msgstr "Nijedan od navedenih ključeva nije zapisiv"
+msgstr "Nijedan od navedenih ključeva nije upisiv"
 
-#: ../src/grl-source.c:4160
+#: ../src/grl-source.c:4014
 #, c-format
 msgid "Media has no 'id', cannot remove"
 msgstr "Medij nema „ib“, ne mogu da uklonim"
-
-#~ msgid "Apple Movie Trailers"
-#~ msgstr "Eplovi odlomci filmova"
-
-#~ msgid "A plugin for browsing Apple Movie Trailers"
-#~ msgstr "Priključak za razgledanje Eplovih odlomaka filmova"
-
-#~ msgid "Failed to parse response"
-#~ msgstr "Nisam uspeo da obradim odgovor"
-
-#~ msgid "Empty response"
-#~ msgstr "Prazan odgovor"
-
-#~ msgid "Failed to connect: %s"
-#~ msgstr "Nisam uspeo da se povežem: %s"
-
-#~ msgid "A source for browsing and searching Blip.tv videos"
-#~ msgstr "Izvor za razgledanje i pretragu snimaka Blip televizije"
-
-#~ msgid "Bookmarks"
-#~ msgstr "Obeleživači"
-
-#~ msgid "A source for organizing media bookmarks"
-#~ msgstr "Izvor za organizovanje medijskih obeleživača"
-
-#~ msgid "Failed to get bookmark metadata"
-#~ msgstr "Nisam uspeo da dobavim meta podatke obeleživača"
-
-#~ msgid "Failed to get bookmarks list: %s"
-#~ msgstr "Nisam uspeo da dobavim spisak obeleživača: %s"
-
-#~ msgid "Failed to remove: %s"
-#~ msgstr "Nisam uspeo da uklonim: %s"
-
-#~ msgid "No database connection"
-#~ msgstr "Nema veza sa bazom podataka"
-
-#~ msgid "A source for browsing the DMAP server '%s'"
-#~ msgstr "Izvor za razgledanje DMAP servera „%s“"
-
-#~ msgid "Albums"
-#~ msgstr "Albumi"
-
-#~ msgid "Artists"
-#~ msgstr "Izvođači"
-
-#~ msgid "Invalid container identifier %s"
-#~ msgstr "Neispravan odrednik sadržaoca „%s“"
-
-#~ msgid "Filesystem"
-#~ msgstr "Sistem datoteka"
-
-#~ msgid "A source for browsing the filesystem"
-#~ msgstr "Izvor za razgledanje sistema datoteka"
-
-#~ msgid "File %s does not exist"
-#~ msgstr "Datoteka „%s“ ne postoji"
-
-#~ msgid "A source for browsing and searching Flickr photos"
-#~ msgstr "Izvor za razgledanje i pretragu slika Flikra"
-
-#~ msgid "%s's Flickr"
-#~ msgstr "Flikr korisnika „%s“"
-
-#~ msgid "A source for browsing and searching %s's flickr photos"
-#~ msgstr "Izvor za razgledanje i pretragu slika sa flikra korisnika %s"
-
-#~ msgid "Freebox TV"
-#~ msgstr "Friboks TV"

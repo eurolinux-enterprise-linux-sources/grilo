@@ -6,12 +6,6 @@ noinst_PROGRAMS = browsing configuring-plugins efficient-metadata-resolution	\
 
 browsing_SOURCES = browsing.c
 
-if BUILD_GRILO_PLS
-noinst_PROGRAMS += browsing-pls
-browsing_pls_SOURCES = browsing-pls.c
-browsing_pls_LDADD = $(LDADD) $(top_builddir)/libs/pls/libgrlpls-@GRL_MAJORMINOR@.la
-endif
-
 configuring_plugins_SOURCES = configuring-plugins.c
 
 efficient_metadata_resolution_SOURCES = efficient-metadata-resolution.c
@@ -22,4 +16,5 @@ multivalues_SOURCES = multivalues.c
 
 searching_SOURCES = searching.c
 
--include $(top_srcdir)/git.mk
+MAINTAINERCLEANFILES = Makefile.in *~
+DISTCLEANFILES = $(MAINTAINERCLEANFILES)

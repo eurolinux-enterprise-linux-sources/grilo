@@ -62,20 +62,6 @@ GRL_LOG_DOMAIN(registry_log_domain);
 
 #define GRL_PLUGIN_INFO_MODULE "module"
 
-#define LOCAL_NET_TAG      "net:local"
-#define INTERNET_NET_TAG   "net:internet"
-
-#ifdef HAVE_GIO_WITH_NETMON
-#define SET_INVISIBLE_SOURCE(src, val)                          \
-  g_object_set_data(G_OBJECT(src), "invisible", GINT_TO_POINTER(val))
-#define SOURCE_IS_INVISIBLE(src)                                \
-  GPOINTER_TO_INT(g_object_get_data(G_OBJECT(src), "invisible"))
-#else
-#define SET_INVISIBLE_SOURCE(src, val)
-#define SOURCE_IS_INVISIBLE(src)                                \
-  FALSE
-#endif /* HAVE_GIO_WITH_NETMON */
-
 #define GRL_REGISTRY_GET_PRIVATE(object)                        \
   (G_TYPE_INSTANCE_GET_PRIVATE((object),                        \
                                GRL_TYPE_REGISTRY,               \
@@ -93,15 +79,12 @@ struct _GrlRegistryPrivate {
   GHashTable *plugins;
   GHashTable *sources;
   GHashTable *related_keys;
-  GHashTable *system_keys;
+  GParamSpecPool *system_keys;
   GHashTable *ranks;
   GSList *plugins_dir;
   GSList *allowed_plugins;
   gboolean all_plugins_preloaded;
   struct KeyIDHandler key_id_handler;
-#ifdef HAVE_GIO_WITH_NETMON
-  GNetworkMonitor *netmon;
-#endif
 };
 
 static void grl_registry_setup_ranks (GrlRegistry *registry);
@@ -110,8 +93,6 @@ static void grl_registry_preload_plugins (GrlRegistry *registry,
                                           GList **plugins_loaded);
 
 static void key_id_handler_init (struct KeyIDHandler *handler);
-
-static void key_id_handler_free (struct KeyIDHandler *handler);
 
 static GrlKeyID key_id_handler_get_key (struct KeyIDHandler *handler,
                                         const gchar *key_name);
@@ -122,24 +103,11 @@ static const gchar *key_id_handler_get_name (struct KeyIDHandler *handler,
 static GrlKeyID key_id_handler_add (struct KeyIDHandler *handler,
                                     GrlKeyID key, const gchar *key_name);
 
-static void shutdown_plugin (GrlPlugin *plugin);
-
-static void configs_free (GList *configs);
-
-#ifdef HAVE_GIO_WITH_NETMON
-static gboolean strv_contains (const char **strv, const char  *str);
-#endif
-
-static GrlPlugin *grl_registry_prepare_plugin (GrlRegistry *registry,
-                                               const gchar *library_filename,
-                                               GError **error);
-
 /* ================ GrlRegistry GObject ================ */
 
 enum {
   SIG_SOURCE_ADDED,
   SIG_SOURCE_REMOVED,
-  SIG_METADATA_KEY_ADDED,
   SIG_LAST
 };
 static gint registry_signals[SIG_LAST];
@@ -188,103 +156,7 @@ grl_registry_class_init (GrlRegistryClass *klass)
 		 NULL,
 		 g_cclosure_marshal_VOID__OBJECT,
 		 G_TYPE_NONE, 1, GRL_TYPE_SOURCE);
-
-  /**
-   * GrlRegistry::metadata-key-added:
-   * @registry: the registry
-   * @key: the name of the new key added
-   *
-   * Signals that a new metadata key has been registered.
-   *
-   * Since: 0.2.10
-   */
-  registry_signals[SIG_METADATA_KEY_ADDED] =
-    g_signal_new("metadata-key-added",
-                 G_TYPE_FROM_CLASS(klass),
-                 G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
-                 0,
-                 NULL,
-                 NULL,
-                 g_cclosure_marshal_VOID__STRING,
-                 G_TYPE_NONE, 1, G_TYPE_STRING);
 }
-
-#ifdef HAVE_GIO_WITH_NETMON
-static void
-network_changed_cb (GObject     *gobject,
-                    GParamSpec  *pspec,
-                    GrlRegistry *registry)
-{
-  GNetworkConnectivity connectivity;
-  gboolean network_available;
-  GHashTableIter iter;
-  GrlSource *current_source;
-
-  GRL_DEBUG ("Network availability changed");
-
-  g_object_get (G_OBJECT (registry->priv->netmon),
-                "connectivity", &connectivity,
-                "network-available", &network_available,
-                NULL);
-
-  GRL_DEBUG ("Connectivity level is %d, Network is %s",
-             connectivity, network_available ? "available" : "unavailable");
-
-  if (!network_available) {
-    g_hash_table_iter_init (&iter, registry->priv->sources);
-
-    while (g_hash_table_iter_next (&iter, NULL, (gpointer *) &current_source)) {
-      const char **tags = grl_source_get_tags (current_source);
-
-      if (!tags)
-        continue;
-
-      if ((strv_contains (tags, LOCAL_NET_TAG) ||
-           strv_contains (tags, INTERNET_NET_TAG)) &&
-          !SOURCE_IS_INVISIBLE(current_source)) {
-        GRL_DEBUG ("Network isn't available for '%s', hiding",
-                   grl_source_get_id (current_source));
-        SET_INVISIBLE_SOURCE(current_source, TRUE);
-        g_signal_emit (registry, registry_signals[SIG_SOURCE_REMOVED], 0, current_source);
-      }
-    }
-  } else {
-    g_hash_table_iter_init (&iter, registry->priv->sources);
-    while (g_hash_table_iter_next (&iter, NULL, (gpointer *) &current_source)) {
-      const char **tags = grl_source_get_tags (current_source);
-
-      if (!tags)
-        continue;
-
-      if (strv_contains (tags, LOCAL_NET_TAG) &&
-          SOURCE_IS_INVISIBLE(current_source)) {
-        GRL_DEBUG ("Local network became available for '%s', showing",
-                   grl_source_get_id (current_source));
-        SET_INVISIBLE_SOURCE(current_source, FALSE);
-        g_signal_emit (registry, registry_signals[SIG_SOURCE_ADDED], 0, current_source);
-      }
-
-      if (strv_contains (tags, INTERNET_NET_TAG) &&
-          connectivity == G_NETWORK_CONNECTIVITY_FULL &&
-          SOURCE_IS_INVISIBLE(current_source)) {
-        GRL_DEBUG ("Internet became available for '%s', showing",
-                   grl_source_get_id (current_source));
-        SET_INVISIBLE_SOURCE(current_source, FALSE);
-        g_signal_emit (registry, registry_signals[SIG_SOURCE_ADDED], 0, current_source);
-      }
-
-      if (strv_contains (tags, INTERNET_NET_TAG) &&
-          connectivity != G_NETWORK_CONNECTIVITY_FULL &&
-          !SOURCE_IS_INVISIBLE(current_source)) {
-        GRL_DEBUG ("Internet became unavailable for '%s', hiding",
-                   grl_source_get_id (current_source));
-        SET_INVISIBLE_SOURCE(current_source, TRUE);
-        g_signal_emit (registry, registry_signals[SIG_SOURCE_REMOVED], 0, current_source);
-      }
-    }
-  }
-}
-#endif /* HAVE_GIO_WITH_NETMON */
 
 static void
 grl_registry_init (GrlRegistry *registry)
@@ -292,7 +164,7 @@ grl_registry_init (GrlRegistry *registry)
   registry->priv = GRL_REGISTRY_GET_PRIVATE (registry);
 
   registry->priv->configs =
-    g_hash_table_new_full (g_str_hash, g_str_equal, g_free, (GDestroyNotify) configs_free);
+    g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
   registry->priv->plugins =
     g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
   registry->priv->sources =
@@ -300,15 +172,7 @@ grl_registry_init (GrlRegistry *registry)
   registry->priv->related_keys =
     g_hash_table_new_full (g_direct_hash, g_direct_equal, NULL, NULL);
   registry->priv->system_keys =
-    g_hash_table_new_full (g_str_hash, g_str_equal, NULL, (GDestroyNotify) g_param_spec_unref);
-
-#ifdef HAVE_GIO_WITH_NETMON
-  registry->priv->netmon = g_network_monitor_get_default ();
-  g_signal_connect (G_OBJECT (registry->priv->netmon), "notify::connectivity",
-                    G_CALLBACK (network_changed_cb), registry);
-  g_signal_connect (G_OBJECT (registry->priv->netmon), "notify::network-available",
-                    G_CALLBACK (network_changed_cb), registry);
-#endif
+    g_param_spec_pool_new (FALSE);
 
   key_id_handler_init (&registry->priv->key_id_handler);
 
@@ -316,79 +180,6 @@ grl_registry_init (GrlRegistry *registry)
 }
 
 /* ================ Utitilies ================ */
-
-static void
-configs_free (GList *configs)
-{
-  g_list_free_full (configs, g_object_unref);
-}
-
-#ifdef HAVE_GIO_WITH_NETMON
-static gboolean
-strv_contains (const char **strv,
-               const char  *str)
-{
-  const char **s = strv;
-
-  while (*s) {
-    if (g_str_equal (str, *s))
-      return TRUE;
-    s++;
-  }
-
-  return FALSE;
-}
-
-static void
-update_source_visibility (GrlRegistry *registry,
-                          GrlSource   *source)
-{
-  GNetworkConnectivity connectivity;
-  gboolean network_available;
-  const char **tags;
-  gboolean needs_local, needs_inet;
-
-  tags = grl_source_get_tags (source);
-  if (!tags)
-    return;
-
-  needs_local = strv_contains (tags, LOCAL_NET_TAG);
-  needs_inet = strv_contains (tags, INTERNET_NET_TAG);
-
-  if (!needs_local &&
-      !needs_inet)
-    return;
-
-  g_object_get (G_OBJECT (registry->priv->netmon),
-                "connectivity", &connectivity,
-                "network-available", &network_available,
-                NULL);
-
-  GRL_DEBUG ("Connectivity level is %d, Network is %s",
-             connectivity, network_available ? "available" : "unavailable");
-  GRL_DEBUG ("Source %s needs %s %s%s",
-             grl_source_get_id (source),
-             needs_local ? "local network" : "",
-             needs_inet && needs_local ? " and " : "",
-             needs_inet ? "Internet" : "");
-
-  if (!network_available) {
-    if (needs_local || needs_inet) {
-      GRL_DEBUG ("Network isn't available for '%s', hiding",
-                 grl_source_get_id (source));
-      SET_INVISIBLE_SOURCE(source, TRUE);
-    }
-  } else {
-    if (connectivity != G_NETWORK_CONNECTIVITY_FULL) {
-      if (needs_inet) {
-        GRL_DEBUG ("Internet isn't available for '%s', hiding",
-                   grl_source_get_id (source));
-        SET_INVISIBLE_SOURCE(source, TRUE);
-      }
-    }
-  }
-}
-#endif /* HAVE_GIO_WITH_NETMON */
 
 static void
 config_source_rank (GrlRegistry *registry,
@@ -520,11 +311,12 @@ get_info_from_plugin_xml (const gchar *xml_path)
 }
 
 static gboolean
-register_keys_plugin (GrlRegistry *registry,
-                      GrlPlugin *plugin,
-                      GError **error)
+activate_plugin (GrlRegistry *registry,
+                 GrlPlugin *plugin,
+                 GError **error)
 {
   gboolean is_loaded;
+  GList *plugin_configs;
 
   /* Check if plugin is already loaded */
   g_object_get (plugin, "loaded", &is_loaded, NULL);
@@ -537,18 +329,6 @@ register_keys_plugin (GrlRegistry *registry,
     return FALSE;
   }
 
-  grl_plugin_register_keys (plugin);
-
-  return TRUE;
-}
-
-static gboolean
-activate_plugin (GrlRegistry *registry,
-                 GrlPlugin *plugin,
-                 GError **error)
-{
-  GList *plugin_configs;
-
   plugin_configs = g_hash_table_lookup (registry->priv->configs,
                                         grl_plugin_get_id (plugin));
 
@@ -557,7 +337,7 @@ activate_plugin (GrlRegistry *registry,
     g_set_error (error,
                  GRL_CORE_ERROR,
                  GRL_CORE_ERROR_LOAD_PLUGIN_FAILED,
-                 _("Failed to initialize plugin from %s"), grl_plugin_get_filename (plugin));
+                 _("Failed to initialize plugin from %so"), grl_plugin_get_filename (plugin));
     g_module_close (grl_plugin_get_module (plugin));
     grl_plugin_set_module (plugin, NULL);
     return FALSE;
@@ -638,7 +418,7 @@ grl_registry_preload_plugin (GrlRegistry *registry,
 
     g_hash_table_insert (registry->priv->plugins,
                          id,
-                         plugin);
+                         g_object_ref (plugin));
   }
   return plugin;
 }
@@ -700,67 +480,22 @@ static gboolean
 grl_registry_load_plugin_list (GrlRegistry *registry,
                                GList *plugin_list)
 {
-  GList *l;
+  GrlPlugin *plugin;
   gboolean loaded_one = FALSE;
 
-  for (l = plugin_list; l ; l = l->next) {
-    GrlPlugin *plugin = l->data;
+  while (plugin_list) {
+    plugin = (GrlPlugin *) plugin_list->data;
     if (grl_plugin_get_module (plugin)) {
-      loaded_one |= register_keys_plugin (registry, plugin, NULL);
+      loaded_one |= activate_plugin (registry, plugin, NULL);
     } else {
-      loaded_one |= (grl_registry_prepare_plugin (registry,
-                                                  grl_plugin_get_filename (plugin),
-                                                  NULL) != NULL);
-      loaded_one |= register_keys_plugin (registry, plugin, NULL);
+      loaded_one |= grl_registry_load_plugin (registry,
+                                              grl_plugin_get_filename (plugin),
+                                              NULL);
     }
-  }
-
-  for (l = plugin_list; l ; l = l->next) {
-    GrlPlugin *plugin = l->data;
-    loaded_one |= activate_plugin (registry, plugin, NULL);
+    plugin_list = g_list_next (plugin_list);
   }
 
   return loaded_one;
-}
-
-static GrlKeyID
-grl_registry_register_metadata_key_full (GrlRegistry *registry,
-                                         GParamSpec *param_spec,
-                                         GrlKeyID key,
-                                         GError **error)
-{
-  const gchar *key_name;
-
-  g_return_val_if_fail (GRL_IS_REGISTRY (registry), 0);
-  g_return_val_if_fail (G_IS_PARAM_SPEC (param_spec), 0);
-  GrlKeyID registered_key;
-
-  key_name = g_param_spec_get_name (param_spec);
-
-  registered_key = key_id_handler_add (&registry->priv->key_id_handler, key, key_name);
-
-  if (registered_key == GRL_METADATA_KEY_INVALID) {
-    GRL_WARNING ("metadata key '%s' cannot be registered", key_name);
-    g_set_error (error,
-                 GRL_CORE_ERROR,
-                 GRL_CORE_ERROR_REGISTER_METADATA_KEY_FAILED,
-                 _("Metadata key '%s' cannot be registered"),
-                 key_name);
-
-    return GRL_METADATA_KEY_INVALID;
-  }
-
-  g_hash_table_insert (registry->priv->system_keys,
-                       (gpointer) key_name,
-                       param_spec);
-
-  /* Each key is related to itself */
-  g_hash_table_insert (registry->priv->related_keys,
-                       GRLKEYID_TO_POINTER (registered_key),
-                       g_list_prepend (NULL,
-                                       GRLKEYID_TO_POINTER (registered_key)));
-
-  return registered_key;
 }
 
 static void
@@ -776,13 +511,6 @@ key_id_handler_init (struct KeyIDHandler *handler)
   g_array_insert_val (handler->id_to_string,
                       GRL_METADATA_KEY_INVALID,
                       null_string);
-}
-
-static void
-key_id_handler_free (struct KeyIDHandler *handler)
-{
-  g_hash_table_unref (handler->string_to_id);
-  g_array_unref (handler->id_to_string);
 }
 
 static
@@ -861,18 +589,6 @@ key_id_handler_get_all_keys (struct KeyIDHandler *handler)
   return g_hash_table_get_values (handler->string_to_id);
 }
 
-static void
-shutdown_plugin (GrlPlugin *plugin)
-{
-  GRL_DEBUG ("Unloading plugin '%s'", grl_plugin_get_id (plugin));
-  grl_plugin_unload (plugin);
-
-  if (grl_plugin_get_module (plugin)) {
-    g_module_close (grl_plugin_get_module (plugin));
-    grl_plugin_set_module (plugin, NULL);
-  }
-}
-
 /* ================ PRIVATE API ================ */
 
 /*
@@ -894,7 +610,8 @@ grl_registry_restrict_plugins (GrlRegistry *registry,
 
   /* Free previous list */
   if (registry->priv->allowed_plugins) {
-    g_slist_free_full (registry->priv->allowed_plugins, g_free);
+    g_slist_foreach (registry->priv->allowed_plugins, (GFunc) g_free, NULL);
+    g_slist_free (registry->priv->allowed_plugins);
     registry->priv->allowed_plugins = NULL;
   }
 
@@ -903,66 +620,6 @@ grl_registry_restrict_plugins (GrlRegistry *registry,
                                                        g_strdup (*plugins));
     plugins++;
   }
-}
-
-/*
- * grl_registry_shutdown:
- * @registry: the registry instance
- *
- * Frees all the resources in the registry and the registry itself.
- **/
-void
-grl_registry_shutdown (GrlRegistry *registry)
-{
-  GHashTableIter iter;
-  GList *each_key;
-  GList *related_keys = NULL;
-  GrlPlugin *plugin = NULL;
-  GrlSource *source = NULL;
-
-  if (registry->priv->plugins) {
-    g_hash_table_iter_init (&iter, registry->priv->plugins);
-    while (g_hash_table_iter_next (&iter, NULL, (gpointer *) &plugin)) {
-      shutdown_plugin (plugin);
-    }
-    g_clear_pointer (&registry->priv->plugins, g_hash_table_unref);
-  }
-
-  if (registry->priv->sources) {
-    g_hash_table_iter_init (&iter, registry->priv->sources);
-    while (g_hash_table_iter_next (&iter, NULL, (gpointer *) &source)) {
-      g_object_unref (source);
-    }
-    g_clear_pointer (&registry->priv->sources, g_hash_table_unref);
-  }
-
-  g_clear_pointer (&registry->priv->ranks, g_hash_table_unref);
-  g_clear_pointer (&registry->priv->configs, g_hash_table_unref);
-
-  /* We need to free this table with care. Several keys can be pointing to the
-     same value, so we need to ensure that we only free the value once */
-  if (registry->priv->related_keys) {
-    while (TRUE) {
-      g_hash_table_iter_init (&iter, registry->priv->related_keys);
-      if (!g_hash_table_iter_next (&iter, NULL, (gpointer *) &related_keys)) {
-        break;
-      }
-      /* This will invalidate the iterator */
-      for (each_key = related_keys; each_key; each_key = g_list_next (each_key)) {
-        g_hash_table_remove (registry->priv->related_keys, GRLKEYID_TO_POINTER (each_key->data));
-      }
-      g_list_free (related_keys);
-    }
-    g_clear_pointer (&registry->priv->related_keys, g_hash_table_unref);
-  }
-
-  g_slist_free_full (registry->priv->plugins_dir, (GDestroyNotify) g_free);
-  g_slist_free_full (registry->priv->allowed_plugins, (GDestroyNotify) g_free);
-
-  key_id_handler_free (&registry->priv->key_id_handler);
-  g_clear_pointer (&registry->priv->system_keys, g_hash_table_unref);
-
-  g_object_unref (registry);
 }
 
 /* ================ PUBLIC API ================ */
@@ -987,7 +644,6 @@ grl_registry_get_default (void)
 
   if (!registry) {
     registry = g_object_new (GRL_TYPE_REGISTRY, NULL);
-    g_object_add_weak_pointer (G_OBJECT (registry), (gpointer *) &registry);
   }
 
   return registry;
@@ -997,7 +653,7 @@ grl_registry_get_default (void)
  * grl_registry_register_source:
  * @registry: the registry instance
  * @plugin: the plugin which owns the source
- * @source: (transfer full): the source to register
+ * @source: the source to register
  * @error: error return location or @NULL to ignore
  *
  * Register a @source in the @registry with the given @plugin information
@@ -1035,13 +691,7 @@ grl_registry_register_source (GrlRegistry *registry,
   /* Set source rank */
   set_source_rank (registry, source);
 
-#ifdef HAVE_GIO_WITH_NETMON
-  /* Update whether it should be invisible */
-  update_source_visibility (registry, source);
-#endif
-
-  if (!SOURCE_IS_INVISIBLE(source))
-    g_signal_emit (registry, registry_signals[SIG_SOURCE_ADDED], 0, source);
+  g_signal_emit (registry, registry_signals[SIG_SOURCE_ADDED], 0, source);
 
   return TRUE;
 }
@@ -1112,10 +762,22 @@ grl_registry_add_directory (GrlRegistry *registry,
   registry->priv->all_plugins_preloaded = FALSE;
 }
 
-static GrlPlugin *
-grl_registry_prepare_plugin (GrlRegistry *registry,
-                             const gchar *library_filename,
-                             GError **error)
+/**
+ * grl_registry_load_plugin:
+ * @registry: the registry instance
+ * @library_filename: the path to the so file
+ * @error: error return location or @NULL to ignore
+ *
+ * Loads a module from shared object file stored in @path
+ *
+ * Returns: %TRUE if the module is loaded correctly
+ *
+ * Since: 0.2.0
+ */
+gboolean
+grl_registry_load_plugin (GrlRegistry *registry,
+                          const gchar *library_filename,
+                          GError **error)
 {
   GModule *module;
   GrlPluginDescriptor *plugin_desc;
@@ -1133,7 +795,7 @@ grl_registry_prepare_plugin (GrlRegistry *registry,
                  GRL_CORE_ERROR,
                  GRL_CORE_ERROR_LOAD_PLUGIN_FAILED,
                  _("Failed to load plugin from %s"), library_filename);
-    return NULL;
+    return FALSE;
   }
 
   if (!g_module_symbol (module, "GRL_PLUGIN_DESCRIPTOR", (gpointer) &plugin_desc)) {
@@ -1143,7 +805,7 @@ grl_registry_prepare_plugin (GrlRegistry *registry,
                  GRL_CORE_ERROR_LOAD_PLUGIN_FAILED,
                  _("Invalid plugin file %s"), library_filename);
     g_module_close (module);
-    return NULL;
+    return FALSE;
   }
 
   if (!plugin_desc->plugin_init ||
@@ -1154,7 +816,7 @@ grl_registry_prepare_plugin (GrlRegistry *registry,
                  GRL_CORE_ERROR_LOAD_PLUGIN_FAILED,
                  _("'%s' is not a valid plugin file"), library_filename);
     g_module_close (module);
-    return NULL;
+    return FALSE;
   }
 
   /* Check if plugin is preloaded; if not, then create one */
@@ -1173,7 +835,7 @@ grl_registry_prepare_plugin (GrlRegistry *registry,
                    GRL_CORE_ERROR_LOAD_PLUGIN_FAILED,
                    _("Unable to load plugin '%s'"), plugin_desc->plugin_id);
       g_module_close (module);
-      return NULL;
+      return FALSE;
     }
   } else {
     /* Check if the existent plugin is for a different module */
@@ -1183,14 +845,13 @@ grl_registry_prepare_plugin (GrlRegistry *registry,
                    GRL_CORE_ERROR,
                    GRL_CORE_ERROR_LOAD_PLUGIN_FAILED,
                    _("Plugin '%s' already exists"), library_filename);
-      return NULL;
+      return FALSE;
     }
   }
 
   if (!grl_plugin_get_module (plugin)) {
     grl_plugin_set_load_func (plugin, plugin_desc->plugin_init);
     grl_plugin_set_unload_func (plugin, plugin_desc->plugin_deinit);
-    grl_plugin_set_register_keys_func (plugin, plugin_desc->plugin_register_keys);
 
     /* Insert module name as part of plugin information */
     module_name = g_path_get_basename (library_filename);
@@ -1203,34 +864,7 @@ grl_registry_prepare_plugin (GrlRegistry *registry,
     g_module_make_resident (module);
   }
 
-  return plugin;
-}
-
-/**
- * grl_registry_load_plugin:
- * @registry: the registry instance
- * @library_filename: the path to the so file
- * @error: error return location or @NULL to ignore
- *
- * Loads a module from shared object file stored in @path
- *
- * Returns: %TRUE if the module is loaded correctly
- *
- * Since: 0.2.0
- */
-gboolean
-grl_registry_load_plugin (GrlRegistry *registry,
-                          const gchar *library_filename,
-                          GError **error)
-{
-  GrlPlugin *plugin;
-
-  plugin = grl_registry_prepare_plugin (registry, library_filename, error);
-  if (!plugin)
-    return FALSE;
-
-  return register_keys_plugin (registry, plugin, error) &&
-         activate_plugin (registry, plugin, error);
+  return activate_plugin (registry, plugin, error);
 }
 
 /**
@@ -1388,16 +1022,11 @@ GrlSource *
 grl_registry_lookup_source (GrlRegistry *registry,
                             const gchar *source_id)
 {
-  GrlSource *source;
-
   g_return_val_if_fail (GRL_IS_REGISTRY (registry), NULL);
   g_return_val_if_fail (source_id != NULL, NULL);
 
-  source = (GrlSource *) g_hash_table_lookup (registry->priv->sources,
-                                              source_id);
-  if (source && !SOURCE_IS_INVISIBLE(source))
-    return source;
-  return NULL;
+  return (GrlSource *) g_hash_table_lookup (registry->priv->sources,
+                                            source_id);
 }
 
 /**
@@ -1409,7 +1038,7 @@ grl_registry_lookup_source (GrlRegistry *registry,
  *
  * If @ranked is %TRUE, the source list will be ordered by rank.
  *
- * Returns: (element-type GrlSource) (transfer container): a #GList of
+ * Returns: (element-type Grl.Source) (transfer container): a #GList of
  * available #GrlSource<!-- -->s. The content of the list should not be
  * modified or freed. Use g_list_free() when done using the list.
  *
@@ -1427,8 +1056,7 @@ grl_registry_get_sources (GrlRegistry *registry,
 
   g_hash_table_iter_init (&iter, registry->priv->sources);
   while (g_hash_table_iter_next (&iter, NULL, (gpointer *) &current_source)) {
-    if (!SOURCE_IS_INVISIBLE(current_source))
-      source_list = g_list_prepend (source_list, current_source);
+    source_list = g_list_prepend (source_list, current_source);
   }
 
   if (ranked) {
@@ -1449,7 +1077,7 @@ grl_registry_get_sources (GrlRegistry *registry,
  *
  * If @ranked is %TRUE, the source list will be ordered by rank.
  *
- * Returns: (element-type GrlSource) (transfer container): a #GList of
+ * Returns: (element-type Grl.Source) (transfer container): a #GList of
  * available #GrlSource<!-- -->s. The content of the list should not be
  * modified or freed. Use g_list_free() when done using the list.
  *
@@ -1471,8 +1099,7 @@ grl_registry_get_sources_by_operations (GrlRegistry *registry,
     GrlSupportedOps source_ops;
     source_ops =
       grl_source_supported_operations (source);
-    if ((source_ops & ops) == ops &&
-        !SOURCE_IS_INVISIBLE(source)) {
+    if ((source_ops & ops) == ops) {
       source_list = g_list_prepend (source_list, source);
     }
   }
@@ -1516,7 +1143,7 @@ grl_registry_lookup_plugin (GrlRegistry *registry,
  * If @only_loaded is %TRUE, the plugin list will contain only plugins that are
  * loaded.
  *
- * Returns: (element-type GrlPlugin) (transfer container): a #GList of
+ * Returns: (element-type Grl.Plugin) (transfer container): a #GList of
  * available #GrlPlugin<!-- -->s. The content of the list should not be modified
  * or freed. Use g_list_free() when done using the list.
  *
@@ -1600,7 +1227,13 @@ grl_registry_unload_plugin (GrlRegistry *registry,
   g_list_free (sources);
 
   /* Third, shut down the plugin */
-  shutdown_plugin (plugin);
+  GRL_DEBUG ("Unloading plugin '%s'", plugin_id);
+   grl_plugin_unload (plugin);
+
+  if (grl_plugin_get_module (plugin)) {
+      g_module_close (grl_plugin_get_module (plugin));
+      grl_plugin_set_module (plugin, NULL);
+  }
 
   return TRUE;
 }
@@ -1608,7 +1241,7 @@ grl_registry_unload_plugin (GrlRegistry *registry,
 /**
  * grl_registry_register_metadata_key:
  * @registry: The plugin registry
- * @param_spec: (transfer full): The definition of the key to register
+ * @param_spec: The definition of the key to register
  * @error: error return location or @NULL to ignore
  *
  * Registers a metadata key
@@ -1622,24 +1255,14 @@ grl_registry_register_metadata_key (GrlRegistry *registry,
                                     GParamSpec *param_spec,
                                     GError **error)
 {
-  GrlKeyID key;
-
-  key = grl_registry_register_metadata_key_full (registry,
-                                                 param_spec,
-                                                 GRL_METADATA_KEY_INVALID,
-                                                 error);
-
-  if (key != GRL_METADATA_KEY_INVALID) {
-    g_signal_emit (registry, registry_signals[SIG_METADATA_KEY_ADDED],
-                   0,
-                   grl_metadata_key_get_name (key));
-  }
-
-  return key;
+  return grl_registry_register_metadata_key_full (registry,
+                                                  param_spec,
+                                                  GRL_METADATA_KEY_INVALID,
+                                                  error);
 }
 
 /*
- * grl_registry_register_metadata_key_system:
+ * grl_registry_register_metadata_key_full:
  *
  * This is an internal method only meant to be used to register core
  * keys.
@@ -1648,20 +1271,44 @@ grl_registry_register_metadata_key (GrlRegistry *registry,
  * grl_registry_register_metadata_key().
  */
 GrlKeyID
-grl_registry_register_metadata_key_system (GrlRegistry *registry,
-                                           GParamSpec *param_spec,
-                                           GrlKeyID key,
-                                           GError **error)
+grl_registry_register_metadata_key_full (GrlRegistry *registry,
+                                         GParamSpec *param_spec,
+                                         GrlKeyID key,
+                                         GError **error)
 {
+  const gchar *key_name;
+
+  g_return_val_if_fail (GRL_IS_REGISTRY (registry), 0);
+  g_return_val_if_fail (G_IS_PARAM_SPEC (param_spec), 0);
   GrlKeyID registered_key;
 
-  registered_key = grl_registry_register_metadata_key_full (registry,
-                                                            param_spec,
-                                                            key,
-                                                            error);
+  key_name = g_param_spec_get_name (param_spec);
+
+  registered_key = key_id_handler_add (&registry->priv->key_id_handler, key, key_name);
+
+  if (registered_key == GRL_METADATA_KEY_INVALID) {
+    GRL_WARNING ("metadata key '%s' cannot be registered", key_name);
+    g_set_error (error,
+                 GRL_CORE_ERROR,
+                 GRL_CORE_ERROR_REGISTER_METADATA_KEY_FAILED,
+                 _("Metadata key '%s' cannot be registered"),
+                 key_name);
+
+    return GRL_METADATA_KEY_INVALID;
+  }
+
+  g_param_spec_pool_insert (registry->priv->system_keys,
+                            param_spec,
+                            GRL_TYPE_MEDIA);
+  /* Each key is related to itself */
+  g_hash_table_insert (registry->priv->related_keys,
+                       GRLKEYID_TO_POINTER (registered_key),
+                       g_list_prepend (NULL,
+                                       GRLKEYID_TO_POINTER (registered_key)));
 
   return registered_key;
 }
+
 
 /**
  * grl_registry_register_metadata_key_relation:
@@ -1781,8 +1428,10 @@ grl_registry_lookup_metadata_key_desc (GrlRegistry *registry,
   if (!key_name) {
     return NULL;
   }
-  key_pspec = g_hash_table_lookup (registry->priv->system_keys, key_name);
-
+  key_pspec = g_param_spec_pool_lookup (registry->priv->system_keys,
+                                        key_name,
+                                        GRL_TYPE_MEDIA,
+                                        FALSE);
   if (key_pspec) {
     return g_param_spec_get_blurb (key_pspec);
   } else {
@@ -1814,8 +1463,10 @@ grl_registry_lookup_metadata_key_type (GrlRegistry *registry,
   if (!key_name) {
     return G_TYPE_INVALID;
   }
-  key_pspec = g_hash_table_lookup (registry->priv->system_keys, key_name);
-
+  key_pspec = g_param_spec_pool_lookup (registry->priv->system_keys,
+                                        key_name,
+                                        GRL_TYPE_MEDIA,
+                                        FALSE);
   if (key_pspec) {
     return G_PARAM_SPEC_VALUE_TYPE (key_pspec);
   } else {
@@ -1852,8 +1503,10 @@ grl_registry_metadata_key_validate (GrlRegistry *registry,
   if (!key_name) {
     return FALSE;
   }
-  key_pspec = g_hash_table_lookup (registry->priv->system_keys, key_name);
-
+  key_pspec = g_param_spec_pool_lookup (registry->priv->system_keys,
+                                        key_name,
+                                        GRL_TYPE_MEDIA,
+                                        FALSE);
   if (key_pspec) {
     return !g_param_value_validate (key_pspec, value);
   } else {
@@ -1910,8 +1563,6 @@ grl_registry_get_metadata_keys (GrlRegistry *registry)
  *
  * Add a configuration for a plugin/source.
  *
- * Returns: %TRUE on success
- *
  * Since: 0.2.0
  */
 gboolean
@@ -1951,37 +1602,6 @@ grl_registry_add_config (GrlRegistry *registry,
   return TRUE;
 }
 
-static void
-add_config_from_keyfile (GKeyFile    *keyfile,
-			 GrlRegistry *registry)
-{
-  GrlConfig *config;
-  gchar **key;
-  gchar **keys;
-  gchar **plugin;
-  gchar **plugins;
-  gchar *value;
-
-  /* Look up for defined plugins */
-  plugins = g_key_file_get_groups (keyfile, NULL);
-  for (plugin = plugins; *plugin; plugin++) {
-    config = grl_config_new (*plugin, NULL);
-
-    /* Look up configuration keys for this plugin */
-    keys = g_key_file_get_keys (keyfile, *plugin, NULL, NULL);
-    for (key = keys; *key; key++) {
-      value = g_key_file_get_string (keyfile, *plugin, *key, NULL);
-      if (value) {
-        grl_config_set_string (config, *key, value);
-        g_free (value);
-      }
-    }
-    grl_registry_add_config (registry, config, NULL);
-    g_strfreev (keys);
-  }
-  g_strfreev (plugins);
-}
-
 /**
  * grl_registry_add_config_from_file:
  * @registry: the registry instance
@@ -2001,6 +1621,12 @@ grl_registry_add_config_from_file (GrlRegistry *registry,
 {
   GError *load_error = NULL;
   GKeyFile *keyfile;
+  GrlConfig *config;
+  gchar **key;
+  gchar **keys;
+  gchar **plugin;
+  gchar **plugins;
+  gchar *value;
 
   g_return_val_if_fail (GRL_IS_REGISTRY (registry), FALSE);
   g_return_val_if_fail (config_file, FALSE);
@@ -2011,7 +1637,25 @@ grl_registry_add_config_from_file (GrlRegistry *registry,
                                  config_file,
                                  G_KEY_FILE_NONE,
                                  &load_error)) {
-    add_config_from_keyfile (keyfile, registry);
+
+    /* Look up for defined plugins */
+    plugins = g_key_file_get_groups (keyfile, NULL);
+    for (plugin = plugins; *plugin; plugin++) {
+      config = grl_config_new (*plugin, NULL);
+
+      /* Look up configuration keys for this plugin */
+      keys = g_key_file_get_keys (keyfile, *plugin, NULL, NULL);
+      for (key = keys; *key; key++) {
+        value = g_key_file_get_string (keyfile, *plugin, *key, NULL);
+        if (value) {
+          grl_config_set_string (config, *key, value);
+          g_free (value);
+        }
+      }
+      grl_registry_add_config (registry, config, NULL);
+      g_strfreev (keys);
+    }
+    g_strfreev (plugins);
     g_key_file_free (keyfile);
     return TRUE;
   } else {
@@ -2024,58 +1668,4 @@ grl_registry_add_config_from_file (GrlRegistry *registry,
     g_key_file_free (keyfile);
     return FALSE;
   }
-}
-
-/**
- * grl_registry_add_config_from_resource:
- * @registry: the registry instance
- * @resource_path: a key-value file containing the configuration
- * @error: error return location or @NULL to ignore
- *
- * Load plugin configurations from a .ini-like resource file.
- *
- * Returns: %TRUE on success
- *
- * Since: 0.2.8
- **/
-gboolean
-grl_registry_add_config_from_resource (GrlRegistry *registry,
-                                       const gchar *resource_path,
-                                       GError **error)
-{
-  GError *load_error = NULL;
-  GKeyFile *keyfile = NULL;
-  GBytes *bytes;
-  gboolean ret = FALSE;
-
-  g_return_val_if_fail (GRL_IS_REGISTRY (registry), FALSE);
-  g_return_val_if_fail (resource_path, FALSE);
-
-  bytes = g_resources_lookup_data (resource_path, 0, error);
-  if (bytes == NULL)
-    goto bail;
-
-  keyfile = g_key_file_new ();
-
-  if (g_key_file_load_from_data (keyfile,
-                                 g_bytes_get_data (bytes, NULL),
-                                 g_bytes_get_size (bytes),
-                                 G_KEY_FILE_NONE,
-                                 &load_error)) {
-    add_config_from_keyfile (keyfile, registry);
-    ret = TRUE;
-  } else {
-    GRL_WARNING ("Unable to load configuration. %s", load_error->message);
-    g_set_error_literal (error,
-                         GRL_CORE_ERROR,
-                         GRL_CORE_ERROR_CONFIG_LOAD_FAILED,
-                         load_error->message);
-    g_error_free (load_error);
-  }
-
-bail:
-  g_clear_pointer (&keyfile, g_key_file_free);
-  g_clear_pointer (&bytes, g_bytes_unref);
-
-  return ret;
 }

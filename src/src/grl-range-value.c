@@ -55,16 +55,21 @@ grl_range_value_new (GValue *min, GValue *max)
 void
 grl_range_value_free (GrlRangeValue *range)
 {
-  g_clear_pointer (&range->min, grl_g_value_free);
-  g_clear_pointer (&range->max, grl_g_value_free);
+  if (range->min) {
+    grl_g_value_free (range->min);
+  }
+
+  if (range->max) {
+    grl_g_value_free (range->max);
+  }
 
   g_slice_free (GrlRangeValue, range);
 }
 
-/**
+/*
  * grl_range_value_hashtable_new:
  *
- * Returns: (transfer full) (element-type gpointer GrlRangeValue): a #GHashTable
+ * Returns: a #GHashTable
  */
 GHashTable *
 grl_range_value_hashtable_new (void)

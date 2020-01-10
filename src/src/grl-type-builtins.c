@@ -2,8 +2,8 @@
 /* Generated data (by glib-mkenums) */
 
 #include "grl-type-builtins.h"
-#include "./grl-source.h"
-/* enumerations from "./grl-source.h" */
+#include "grl-source.h"
+/* enumerations from "grl-source.h" */
 GType
 grl_supported_ops_get_type (void)
 {
@@ -44,7 +44,7 @@ grl_source_change_type_get_type (void)
     return etype;
 }
 
-/* enumerations from "./grl-caps.h" */
+/* enumerations from "grl-caps.h" */
 GType
 grl_type_filter_get_type (void)
 {
@@ -63,7 +63,7 @@ grl_type_filter_get_type (void)
     return etype;
 }
 
-/* enumerations from "./grl-operation-options.h" */
+/* enumerations from "grl-operation-options.h" */
 GType
 grl_resolution_flags_get_type (void)
 {
@@ -96,7 +96,7 @@ grl_write_flags_get_type (void)
     return etype;
 }
 
-/* enumerations from "./data/grl-media.h" */
+/* enumerations from "data/grl-media.h" */
 GType
 grl_media_serialize_type_get_type (void)
 {

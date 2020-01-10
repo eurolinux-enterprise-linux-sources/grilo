@@ -5,18 +5,17 @@
 #
 # Copyright (C) 2010 Igalia S.L.
 
-bin_PROGRAMS = grilo-test-ui-@GRL_MAJORMINOR@
+INCLUDES = $(DEPS_CFLAGS)
 
-dist_man1_MANS = grilo-test-ui-0.2.1
+bin_PROGRAMS = grilo-test-ui-@GRL_MAJORMINOR@
 
 grilo_test_ui_@GRL_MAJORMINOR@_SOURCES =	\
 	main.c
 
 grilo_test_ui_@GRL_MAJORMINOR@_CFLAGS =	\
-	$(DEPS_CFLAGS)									\
+	-DPREFIX=$(prefix)							\
 	$(GTU_CFLAGS)									\
 	$(GRL_FLICKR_CFLAGS)							\
-	-DPREFIX=$(prefix)							\
 	-I$(top_srcdir)/src							\
 	-I$(top_srcdir)/src/data
 
@@ -40,4 +39,8 @@ grilo_test_ui_@GRL_MAJORMINOR@_LDADD +=	\
 
 endif
 
--include $(top_srcdir)/git.mk
+MAINTAINERCLEANFILES =	\
+	*.in						\
+	*~
+
+DISTCLEANFILES = $(MAINTAINERCLEANFILES)

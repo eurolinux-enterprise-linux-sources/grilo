@@ -34,6 +34,7 @@
 #include "grl-media-audio.h"
 
 
+static void grl_media_audio_dispose (GObject *object);
 static void grl_media_audio_finalize (GObject *object);
 
 G_DEFINE_TYPE (GrlMediaAudio, grl_media_audio, GRL_TYPE_MEDIA);
@@ -43,12 +44,19 @@ grl_media_audio_class_init (GrlMediaAudioClass *klass)
 {
   GObjectClass *gobject_class = (GObjectClass *)klass;
 
+  gobject_class->dispose = grl_media_audio_dispose;
   gobject_class->finalize = grl_media_audio_finalize;
 }
 
 static void
 grl_media_audio_init (GrlMediaAudio *self)
 {
+}
+
+static void
+grl_media_audio_dispose (GObject *object)
+{
+  G_OBJECT_CLASS (grl_media_audio_parent_class)->dispose (object);
 }
 
 static void
@@ -86,7 +94,6 @@ grl_media_audio_new (void)
 void
 grl_media_audio_set_artist (GrlMediaAudio *audio, const gchar *artist)
 {
-  g_return_if_fail (GRL_IS_MEDIA_AUDIO (audio));
   grl_data_set_string (GRL_DATA (audio), GRL_METADATA_KEY_ARTIST,
                        artist);
 }
@@ -103,7 +110,6 @@ grl_media_audio_set_artist (GrlMediaAudio *audio, const gchar *artist)
 void
 grl_media_audio_set_album (GrlMediaAudio *audio, const gchar *album)
 {
-  g_return_if_fail (GRL_IS_MEDIA_AUDIO (audio));
   grl_data_set_string (GRL_DATA (audio), GRL_METADATA_KEY_ALBUM,
                        album);
 }
@@ -120,7 +126,6 @@ grl_media_audio_set_album (GrlMediaAudio *audio, const gchar *album)
 void
 grl_media_audio_set_genre (GrlMediaAudio *audio, const gchar *genre)
 {
-  g_return_if_fail (GRL_IS_MEDIA_AUDIO (audio));
   grl_data_set_string (GRL_DATA (audio), GRL_METADATA_KEY_GENRE,
                        genre);
 }
@@ -137,78 +142,8 @@ grl_media_audio_set_genre (GrlMediaAudio *audio, const gchar *genre)
 void
 grl_media_audio_set_lyrics (GrlMediaAudio *audio, const gchar *lyrics)
 {
-  g_return_if_fail (GRL_IS_MEDIA_AUDIO (audio));
   grl_data_set_string (GRL_DATA (audio), GRL_METADATA_KEY_LYRICS,
                        lyrics);
-}
-
-/**
- * grl_media_audio_set_mb_album_id:
- * @audio: the media instance
- * @mb_album_id: the MusicBrainz album identifier
- *
- * Set the MusicBrainz album identifier of the audio
- *
- * Since: 0.2.11
- */
-void
-grl_media_audio_set_mb_album_id (GrlMediaAudio *audio, const gchar *mb_album_id)
-{
-  g_return_if_fail (GRL_IS_MEDIA_AUDIO (audio));
-  grl_data_set_string (GRL_DATA (audio), GRL_METADATA_KEY_MB_ALBUM_ID,
-                       mb_album_id);
-}
-
-/**
- * grl_media_audio_set_mb_artist_id:
- * @audio: the media instance
- * @mb_artist_id: the MusicBrainz artist identifier
- *
- * Set the MusicBrainz artist identifier of the audio
- *
- * Since: 0.2.12
- */
-void
-grl_media_audio_set_mb_artist_id (GrlMediaAudio *audio, const gchar *mb_artist_id)
-{
-  g_return_if_fail (GRL_IS_MEDIA_AUDIO (audio));
-  grl_data_set_string (GRL_DATA (audio), GRL_METADATA_KEY_MB_ARTIST_ID,
-                       mb_artist_id);
-}
-
-/**
- * grl_media_audio_set_mb_recording_id:
- * @audio: the media instance
- * @mb_recording_id: the MusicBrainz recording identifier
- *
- * Set the MusicBrainz recording identifier of the audio
- *
- * Since: 0.2.12
- */
-void
-grl_media_audio_set_mb_recording_id (GrlMediaAudio *audio,
-                                     const gchar *mb_recording_id)
-{
-  g_return_if_fail (GRL_IS_MEDIA_AUDIO (audio));
-  grl_data_set_string (GRL_DATA (audio), GRL_METADATA_KEY_MB_RECORDING_ID,
-                       mb_recording_id);
-}
-
-/**
- * grl_media_audio_set_mb_track_id:
- * @audio: the media instance
- * @mb_track_id: the MusicBrainz track identifier
- *
- * Set the MusicBrainz track identifier of the audio
- *
- * Since: 0.2.12
- */
-void
-grl_media_audio_set_mb_track_id (GrlMediaAudio *audio, const gchar *mb_track_id)
-{
-  g_return_if_fail (GRL_IS_MEDIA_AUDIO (audio));
-  grl_data_set_string (GRL_DATA (audio), GRL_METADATA_KEY_MB_TRACK_ID,
-                       mb_track_id);
 }
 
 /**
@@ -223,7 +158,6 @@ grl_media_audio_set_mb_track_id (GrlMediaAudio *audio, const gchar *mb_track_id)
 void
 grl_media_audio_set_bitrate (GrlMediaAudio *audio, gint bitrate)
 {
-  g_return_if_fail (GRL_IS_MEDIA_AUDIO (audio));
   grl_data_set_int (GRL_DATA (audio), GRL_METADATA_KEY_BITRATE,
                     bitrate);
 }
@@ -238,7 +172,6 @@ grl_media_audio_set_bitrate (GrlMediaAudio *audio, gint bitrate)
 void
 grl_media_audio_set_track_number (GrlMediaAudio *audio, gint track_number)
 {
-  g_return_if_fail (GRL_IS_MEDIA_AUDIO (audio));
   grl_data_set_int (GRL_DATA (audio), GRL_METADATA_KEY_TRACK_NUMBER,
                     track_number);
 }
@@ -260,11 +193,7 @@ grl_media_audio_set_url_data (GrlMediaAudio *audio,
                               const gchar *mime,
                               gint bitrate)
 {
-  GrlRelatedKeys *relkeys;
-
-  g_return_if_fail (GRL_IS_MEDIA_AUDIO (audio));
-
-  relkeys = grl_related_keys_new ();
+  GrlRelatedKeys *relkeys = grl_related_keys_new ();
   grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_URL, url);
   grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_MIME, mime);
   if (bitrate >= 0) {
@@ -285,7 +214,6 @@ grl_media_audio_set_url_data (GrlMediaAudio *audio,
 void
 grl_media_audio_add_artist (GrlMediaAudio *audio, const gchar *artist)
 {
-  g_return_if_fail (GRL_IS_MEDIA_AUDIO (audio));
   grl_data_add_string (GRL_DATA (audio), GRL_METADATA_KEY_ARTIST, artist);
 }
 
@@ -301,7 +229,6 @@ grl_media_audio_add_artist (GrlMediaAudio *audio, const gchar *artist)
 void
 grl_media_audio_add_genre (GrlMediaAudio *audio, const gchar *genre)
 {
-  g_return_if_fail (GRL_IS_MEDIA_AUDIO (audio));
   grl_data_add_string (GRL_DATA (audio), GRL_METADATA_KEY_GENRE, genre);
 }
 
@@ -317,26 +244,7 @@ grl_media_audio_add_genre (GrlMediaAudio *audio, const gchar *genre)
 void
 grl_media_audio_add_lyrics (GrlMediaAudio *audio, const gchar *lyrics)
 {
-  g_return_if_fail (GRL_IS_MEDIA_AUDIO (audio));
   grl_data_add_string (GRL_DATA (audio), GRL_METADATA_KEY_LYRICS, lyrics);
-}
-
-/**
- * grl_media_audio_add_mb_artist_id:
- * @audio: the media instance
- * @mb_artist_id: a MusicBrainz artist identifier
- *
- * Adds a new MusicBrainz artist id to @audio.
- *
- * Since: 0.2.12
- **/
-void
-grl_media_audio_add_mb_artist_id (GrlMediaAudio *audio,
-                                  const gchar *mb_artist_id)
-{
-  g_return_if_fail (GRL_IS_MEDIA_AUDIO (audio));
-  grl_data_add_string (GRL_DATA (audio), GRL_METADATA_KEY_MB_ARTIST_ID,
-                       mb_artist_id);
 }
 
 /**
@@ -357,11 +265,7 @@ grl_media_audio_add_url_data (GrlMediaAudio *audio,
                               const gchar *mime,
                               gint bitrate)
 {
-  GrlRelatedKeys *relkeys;
-
-  g_return_if_fail (GRL_IS_MEDIA_AUDIO (audio));
-
-  relkeys = grl_related_keys_new ();
+  GrlRelatedKeys *relkeys = grl_related_keys_new ();
   grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_URL, url);
   grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_MIME, mime);
   if (bitrate >= 0) {
@@ -396,11 +300,7 @@ grl_media_audio_get_artist (GrlMediaAudio *audio)
 const gchar *
 grl_media_audio_get_artist_nth (GrlMediaAudio *audio, guint index)
 {
-  GrlRelatedKeys *relkeys;
-
-  g_return_val_if_fail (GRL_IS_MEDIA_AUDIO (audio), NULL);
-
-  relkeys =
+  GrlRelatedKeys *relkeys =
     grl_data_get_related_keys (GRL_DATA (audio),
                                GRL_METADATA_KEY_ARTIST,
                                index);
@@ -452,11 +352,7 @@ grl_media_audio_get_genre (GrlMediaAudio *audio)
 const gchar *
 grl_media_audio_get_genre_nth (GrlMediaAudio *audio, guint index)
 {
-  GrlRelatedKeys *relkeys;
-
-  g_return_val_if_fail (GRL_IS_MEDIA_AUDIO (audio), NULL);
-
-  relkeys =
+  GrlRelatedKeys *relkeys =
     grl_data_get_related_keys (GRL_DATA (audio), GRL_METADATA_KEY_GENRE, index);
 
   if (!relkeys) {
@@ -492,11 +388,7 @@ grl_media_audio_get_lyrics (GrlMediaAudio *audio)
 const gchar *
 grl_media_audio_get_lyrics_nth (GrlMediaAudio *audio, guint index)
 {
-  GrlRelatedKeys *relkeys;
-
-  g_return_val_if_fail (GRL_IS_MEDIA_AUDIO (audio), NULL);
-
-  relkeys =
+  GrlRelatedKeys *relkeys =
     grl_data_get_related_keys (GRL_DATA (audio),
                                GRL_METADATA_KEY_LYRICS,
                                index);
@@ -506,92 +398,6 @@ grl_media_audio_get_lyrics_nth (GrlMediaAudio *audio, guint index)
   } else {
     return grl_related_keys_get_string (relkeys, GRL_METADATA_KEY_LYRICS);
   }
-}
-
-/**
- * grl_media_audio_get_mb_album_id:
- * @audio: the media instance
- *
- * Returns: the MusicBrainz album identifier
- *
- * Since: 0.2.11
- */
-const gchar *
-grl_media_audio_get_mb_album_id (GrlMediaAudio *audio)
-{
-  return grl_data_get_string (GRL_DATA (audio), GRL_METADATA_KEY_MB_ALBUM_ID);
-}
-
-/**
- * grl_media_audio_get_mb_artist_id:
- * @audio: the media instance
- *
- * Returns: the MusicBrainz artist identifier
- *
- * Since: 0.2.12
- */
-const gchar *
-grl_media_audio_get_mb_artist_id (GrlMediaAudio *audio)
-{
-  g_return_val_if_fail (GRL_IS_MEDIA_AUDIO (audio), NULL);
-  return grl_data_get_string (GRL_DATA (audio), GRL_METADATA_KEY_MB_ARTIST_ID);
-}
-
-/**
- * grl_media_audio_get_mb_artist_id_nth:
- * @audio: the media instance
- * @index: element to retrieve, starting at 0
- *
- * Returns: the n-th MusicBrainz artist identifier of the audio
- *
- * Since: 0.2.12
- */
-const gchar *
-grl_media_audio_get_mb_artist_id_nth (GrlMediaAudio *audio, guint index)
-{
-  GrlRelatedKeys *relkeys;
-
-  g_return_val_if_fail (GRL_IS_MEDIA_AUDIO (audio), NULL);
-
-  relkeys =
-    grl_data_get_related_keys (GRL_DATA (audio),
-                               GRL_METADATA_KEY_MB_ARTIST_ID,
-                               index);
-
-  if (!relkeys) {
-    return NULL;
-  } else {
-    return grl_related_keys_get_string (relkeys, GRL_METADATA_KEY_MB_ARTIST_ID);
-  }
-}
-
-/**
- * grl_media_audio_get_mb_recording_id:
- * @audio: the media instance
- *
- * Returns: the MusicBrainz recording identifier
- *
- * Since: 0.2.12
- */
-const gchar *
-grl_media_audio_get_mb_recording_id (GrlMediaAudio *audio)
-{
-  g_return_val_if_fail (GRL_IS_MEDIA_AUDIO (audio), NULL);
-  return grl_data_get_string (GRL_DATA (audio), GRL_METADATA_KEY_MB_RECORDING_ID);
-}
-
-/**
- * grl_media_audio_get_mb_track_id:
- * @audio: the media instance
- *
- * Returns: the MusicBrainz track identifier
- * Since: 0.2.12
- */
-const gchar *
-grl_media_audio_get_mb_track_id (GrlMediaAudio *audio)
-{
-  g_return_val_if_fail (GRL_IS_MEDIA_AUDIO (audio), NULL);
-  return grl_data_get_string (GRL_DATA (audio), GRL_METADATA_KEY_MB_TRACK_ID);
 }
 
 /**
@@ -656,11 +462,7 @@ grl_media_audio_get_url_data_nth (GrlMediaAudio *audio,
                                   gchar **mime,
                                   gint *bitrate)
 {
-  GrlRelatedKeys *relkeys;
-
-  g_return_val_if_fail (GRL_IS_MEDIA_AUDIO (audio), NULL);
-
-  relkeys =
+  GrlRelatedKeys *relkeys =
     grl_data_get_related_keys (GRL_DATA (audio), GRL_METADATA_KEY_URL, index);
 
   if (!relkeys) {

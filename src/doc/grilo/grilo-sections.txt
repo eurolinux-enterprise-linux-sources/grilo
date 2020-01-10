@@ -76,7 +76,6 @@ grl_source_browse_sync
 grl_source_get_auto_split_threshold
 grl_source_get_caps
 grl_source_get_description
-grl_source_get_icon
 grl_source_get_id
 grl_source_get_media_from_uri
 grl_source_get_media_from_uri_sync
@@ -84,7 +83,6 @@ grl_source_get_name
 grl_source_get_plugin
 grl_source_get_rank
 grl_source_get_supported_media
-grl_source_get_tags
 grl_source_may_resolve
 grl_source_notify_change
 grl_source_notify_change_list
@@ -125,7 +123,6 @@ GrlSourcePrivate
 <TITLE>GrlCaps</TITLE>
 GrlCaps
 GrlCapsClass
-GrlTypeFilter
 grl_caps_new
 grl_caps_get_key_filter
 grl_caps_get_key_range_filter
@@ -138,7 +135,6 @@ grl_caps_set_type_filter
 grl_caps_test_option
 <SUBSECTION Standard>
 GRL_CAPS
-GRL_CAPS_TYPE
 GRL_CAPS_CLASS
 GRL_CAPS_GET_CLASS
 GRL_IS_CAPS
@@ -154,6 +150,7 @@ GrlCapsPrivate
 <TITLE>GrlOperationOptions</TITLE>
 GrlOperationOptions
 GrlOperationOptionsClass
+GrlOperationCancelCb
 grl_operation_options_new
 grl_operation_options_copy
 grl_operation_options_get_count
@@ -164,6 +161,7 @@ grl_operation_options_get_key_range_filter
 grl_operation_options_get_key_range_filter_list
 grl_operation_options_get_skip
 grl_operation_options_get_type_filter
+grl_operation_options_key_is_set
 grl_operation_options_obey_caps
 grl_operation_options_set_count
 grl_operation_options_set_flags
@@ -174,7 +172,6 @@ grl_operation_options_set_key_range_filter
 grl_operation_options_set_key_range_filter_value
 grl_operation_options_set_skip
 grl_operation_options_set_type_filter
-GRL_COUNT_INFINITY
 <SUBSECTION Standard>
 GRL_IS_OPERATION_OPTIONS
 GRL_IS_OPERATION_OPTIONS_CLASS
@@ -190,7 +187,6 @@ GrlOperationOptionsPrivate
 <SECTION>
 <FILE>grl-registry</FILE>
 <TITLE>GrlRegistry</TITLE>
-GrlRank
 GrlRegistry
 GrlRegistryClass
 GrlPluginDescriptor
@@ -200,7 +196,6 @@ GRL_PLUGIN_RANKS_VAR
 GRL_PLUGIN_REGISTER
 grl_registry_add_config
 grl_registry_add_config_from_file
-grl_registry_add_config_from_resource
 grl_registry_add_directory
 grl_registry_get_default
 grl_registry_get_metadata_keys
@@ -247,7 +242,6 @@ grl_related_keys_new_with_keys
 grl_related_keys_dup
 grl_related_keys_get
 grl_related_keys_get_binary
-grl_related_keys_get_boolean
 grl_related_keys_get_boxed
 grl_related_keys_get_float
 grl_related_keys_get_int
@@ -256,12 +250,10 @@ grl_related_keys_get_string
 grl_related_keys_has_key
 grl_related_keys_set
 grl_related_keys_set_binary
-grl_related_keys_set_boolean
 grl_related_keys_set_boxed
 grl_related_keys_set_float
 grl_related_keys_set_int
 grl_related_keys_set_string
-grl_related_keys_remove
 <SUBSECTION Standard>
 GRL_IS_RELATED_KEYS
 GRL_IS_RELATED_KEYS_CLASS
@@ -283,7 +275,6 @@ GRL_CONFIG_KEY_APIKEY
 GRL_CONFIG_KEY_APIKEY_BLOB
 GRL_CONFIG_KEY_APISECRET
 GRL_CONFIG_KEY_APITOKEN
-GRL_CONFIG_KEY_APITOKEN_SECRET
 GRL_CONFIG_KEY_PASSWORD
 GRL_CONFIG_KEY_PLUGIN
 GRL_CONFIG_KEY_SOURCE
@@ -293,7 +284,6 @@ grl_config_get_api_key
 grl_config_get_api_key_blob
 grl_config_get_api_secret
 grl_config_get_api_token
-grl_config_get_api_token_secret
 grl_config_get_binary
 grl_config_get_boolean
 grl_config_get_float
@@ -309,7 +299,6 @@ grl_config_set_api_key
 grl_config_set_api_key_blob
 grl_config_set_api_secret
 grl_config_set_api_token
-grl_config_set_api_token_secret
 grl_config_set_binary
 grl_config_set_boolean
 grl_config_set_float
@@ -337,7 +326,6 @@ GrlConfigPrivate
 GrlMedia
 GrlMediaClass
 GrlMediaSerializeType
-GrlMediaType
 grl_media_new
 grl_media_add_author
 grl_media_add_external_player
@@ -353,7 +341,6 @@ grl_media_get_certificate
 grl_media_get_creation_date
 grl_media_get_description
 grl_media_get_duration
-grl_media_get_favourite
 grl_media_get_external_url
 grl_media_get_external_url_nth
 grl_media_get_id
@@ -384,7 +371,6 @@ grl_media_get_title
 grl_media_get_url
 grl_media_get_url_data
 grl_media_get_url_data_nth
-grl_media_get_size
 grl_media_serialize
 grl_media_serialize_extended
 grl_media_set_author
@@ -394,7 +380,6 @@ grl_media_set_description
 grl_media_set_duration
 grl_media_set_external_player
 grl_media_set_external_url
-grl_media_set_favourite
 grl_media_set_id
 grl_media_set_keyword
 grl_media_set_last_played
@@ -415,7 +400,6 @@ grl_media_set_thumbnail_binary
 grl_media_set_title
 grl_media_set_url
 grl_media_set_url_data
-grl_media_set_size
 grl_media_unserialize
 <SUBSECTION Standard>
 GRL_IS_MEDIA
@@ -442,7 +426,6 @@ grl_data_add_string
 grl_data_dup
 grl_data_get
 grl_data_get_binary
-grl_data_get_boolean
 grl_data_get_boxed
 grl_data_get_float
 grl_data_get_int
@@ -457,7 +440,6 @@ grl_data_remove
 grl_data_remove_nth
 grl_data_set
 grl_data_set_binary
-grl_data_set_boolean
 grl_data_set_boxed
 grl_data_set_float
 grl_data_set_int
@@ -506,7 +488,6 @@ grl_media_video_add_url_data
 grl_media_video_get_director
 grl_media_video_get_director_nth
 grl_media_video_get_episode
-grl_media_video_get_episode_title
 grl_media_video_get_framerate
 grl_media_video_get_height
 grl_media_video_get_original_title
@@ -521,7 +502,6 @@ grl_media_video_get_url_data_nth
 grl_media_video_get_width
 grl_media_video_set_director
 grl_media_video_set_episode
-grl_media_video_set_episode_title
 grl_media_video_set_framerate
 grl_media_video_set_height
 grl_media_video_set_original_title
@@ -551,7 +531,6 @@ grl_media_audio_new
 grl_media_audio_add_artist
 grl_media_audio_add_genre
 grl_media_audio_add_lyrics
-grl_media_audio_add_mb_artist_id
 grl_media_audio_add_url_data
 grl_media_audio_get_album
 grl_media_audio_get_artist
@@ -561,11 +540,6 @@ grl_media_audio_get_genre
 grl_media_audio_get_genre_nth
 grl_media_audio_get_lyrics
 grl_media_audio_get_lyrics_nth
-grl_media_audio_get_mb_album_id
-grl_media_audio_get_mb_artist_id
-grl_media_audio_get_mb_artist_id_nth
-grl_media_audio_get_mb_recording_id
-grl_media_audio_get_mb_track_id
 grl_media_audio_get_track_number
 grl_media_audio_get_url_data
 grl_media_audio_get_url_data_nth
@@ -574,10 +548,6 @@ grl_media_audio_set_artist
 grl_media_audio_set_bitrate
 grl_media_audio_set_genre
 grl_media_audio_set_lyrics
-grl_media_audio_set_mb_album_id
-grl_media_audio_set_mb_artist_id
-grl_media_audio_set_mb_recording_id
-grl_media_audio_set_mb_track_id
 grl_media_audio_set_track_number
 grl_media_audio_set_url_data
 <SUBSECTION Standard>
@@ -644,14 +614,11 @@ GRL_METADATA_KEY_CERTIFICATE
 GRL_METADATA_KEY_CHILDCOUNT
 GRL_METADATA_KEY_CREATION_DATE
 GRL_METADATA_KEY_DESCRIPTION
-GRL_METADATA_KEY_DIRECTOR
 GRL_METADATA_KEY_DURATION
 GRL_METADATA_KEY_EPISODE
-GRL_METADATA_KEY_EPISODE_TITLE
 GRL_METADATA_KEY_EXPOSURE_TIME
 GRL_METADATA_KEY_EXTERNAL_PLAYER
 GRL_METADATA_KEY_EXTERNAL_URL
-GRL_METADATA_KEY_FAVOURITE
 GRL_METADATA_KEY_FLASH_USED
 GRL_METADATA_KEY_FRAMERATE
 GRL_METADATA_KEY_GENRE
@@ -659,22 +626,14 @@ GRL_METADATA_KEY_HEIGHT
 GRL_METADATA_KEY_ID
 GRL_METADATA_KEY_INVALID
 GRL_METADATA_KEY_ISO_SPEED
-GRL_METADATA_KEY_KEYWORD
 GRL_METADATA_KEY_LAST_PLAYED
 GRL_METADATA_KEY_LAST_POSITION
 GRL_METADATA_KEY_LICENSE
 GRL_METADATA_KEY_LYRICS
-GRL_METADATA_KEY_MB_ALBUM_ID
-GRL_METADATA_KEY_MB_ARTIST_ID
-GRL_METADATA_KEY_MB_RECORDING_ID
-GRL_METADATA_KEY_MB_TRACK_ID
 GRL_METADATA_KEY_MIME
 GRL_METADATA_KEY_MODIFICATION_DATE
 GRL_METADATA_KEY_ORIENTATION
-GRL_METADATA_KEY_ORIGINAL_TITLE
-GRL_METADATA_KEY_PERFORMER
 GRL_METADATA_KEY_PLAY_COUNT
-GRL_METADATA_KEY_PRODUCER
 GRL_METADATA_KEY_PUBLICATION_DATE
 GRL_METADATA_KEY_RATING
 GRL_METADATA_KEY_REGION
@@ -687,7 +646,6 @@ GRL_METADATA_KEY_STUDIO
 GRL_METADATA_KEY_THUMBNAIL
 GRL_METADATA_KEY_THUMBNAIL_BINARY
 GRL_METADATA_KEY_TITLE
-GRL_METADATA_KEY_TRACK_NUMBER
 GRL_METADATA_KEY_URL
 GRL_METADATA_KEY_WIDTH
 grl_metadata_key_get_desc
@@ -707,7 +665,6 @@ grl_paging_translate
 <FILE>grilo</FILE>
 grl_init
 grl_init_get_option_group
-grl_deinit
 </SECTION>
 
 <SECTION>
@@ -732,7 +689,6 @@ grl_multiple_search_sync
 grl_operation_cancel
 grl_operation_get_data
 grl_operation_set_data
-grl_operation_set_data_full
 </SECTION>
 
 <SECTION>
@@ -791,16 +747,4 @@ GRL_TYPE_NET_WC
 grl_net_wc_get_type
 <SUBSECTION Private>
 GrlNetWcPrivate
-</SECTION>
-
-<SECTION>
-<FILE>grl-pls</FILE>
-<TITLE>GrlPls</TITLE>
-GrlPlsFilterFunc
-grl_pls_media_is_playlist
-grl_pls_browse
-grl_pls_browse_sync
-grl_pls_browse_by_spec
-grl_pls_file_to_media
-grl_pls_get_file_attributes
 </SECTION>

@@ -67,7 +67,5 @@ main (int argc, gchar *argv[])
   loop = g_main_loop_new (NULL, FALSE);
   g_main_loop_run (loop);
 
-  grl_deinit ();
-
   return 0;
 }

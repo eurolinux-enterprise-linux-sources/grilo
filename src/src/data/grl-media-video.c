@@ -34,6 +34,7 @@
 #include "grl-media-video.h"
 
 
+static void grl_media_video_dispose (GObject *object);
 static void grl_media_video_finalize (GObject *object);
 
 G_DEFINE_TYPE (GrlMediaVideo, grl_media_video, GRL_TYPE_MEDIA);
@@ -43,12 +44,19 @@ grl_media_video_class_init (GrlMediaVideoClass *klass)
 {
   GObjectClass *gobject_class = (GObjectClass *)klass;
 
+  gobject_class->dispose = grl_media_video_dispose;
   gobject_class->finalize = grl_media_video_finalize;
 }
 
 static void
 grl_media_video_init (GrlMediaVideo *self)
 {
+}
+
+static void
+grl_media_video_dispose (GObject *object)
+{
+  G_OBJECT_CLASS (grl_media_video_parent_class)->dispose (object);
 }
 
 static void
@@ -89,8 +97,6 @@ grl_media_video_set_size (GrlMediaVideo *video,
                           gint width,
                           int height)
 {
-  g_return_if_fail (GRL_IS_MEDIA_VIDEO (video));
-
   grl_media_video_set_width (video, width);
   grl_media_video_set_height (video, height);
 }
@@ -174,26 +180,6 @@ void
 grl_media_video_set_episode (GrlMediaVideo *video, gint episode)
 {
   grl_data_set_int (GRL_DATA (video), GRL_METADATA_KEY_EPISODE, episode);
-}
-
-/**
- * grl_media_video_set_episode_title:
- * @video: the media instance
- * @episode_title: the title of the episode
- *
- * Sets the title of an episode
- *
- * Since: 0.2.12
- */
-void
-grl_media_video_set_episode_title (GrlMediaVideo *video,
-                                   const gchar *episode_title)
-{
-  g_return_if_fail (GRL_IS_MEDIA_VIDEO (video));
-
-  grl_data_set_string (GRL_DATA (video),
-                       GRL_METADATA_KEY_EPISODE_TITLE,
-                       episode_title);
 }
 
 /**
@@ -282,22 +268,6 @@ grl_media_video_get_episode (GrlMediaVideo *video)
 }
 
 /**
- * grl_media_video_get_episode_title:
- * @video: the media instance
- *
- * Returns: the title of the episode
- *
- * Since: 0.2.12
- */
-const gchar *
-grl_media_video_get_episode_title (GrlMediaVideo *video)
-{
-  g_return_val_if_fail (GRL_IS_MEDIA_VIDEO (video), NULL);
-
-  return grl_data_get_string (GRL_DATA (video), GRL_METADATA_KEY_EPISODE_TITLE);
-}
-
-/**
  * grl_media_video_get_show:
  * @video: the media instance
  *
@@ -332,11 +302,7 @@ grl_media_video_set_url_data (GrlMediaVideo *video,
                               gint width,
                               gint height)
 {
-  GrlRelatedKeys *relkeys;
-
-  g_return_if_fail (GRL_IS_MEDIA_VIDEO (video));
-
-  relkeys = grl_related_keys_new ();
+  GrlRelatedKeys *relkeys = grl_related_keys_new ();
   grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_URL, url);
   grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_MIME, mime);
   if (framerate >= 0) {
@@ -373,11 +339,7 @@ grl_media_video_add_url_data (GrlMediaVideo *video,
                               gint width,
                               gint height)
 {
-  GrlRelatedKeys *relkeys;
-
-  g_return_if_fail (GRL_IS_MEDIA_VIDEO (video));
-
-  relkeys = grl_related_keys_new ();
+  GrlRelatedKeys *relkeys = grl_related_keys_new ();
   grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_URL, url);
   grl_related_keys_set_string (relkeys, GRL_METADATA_KEY_MIME, mime);
   if (framerate >= 0) {
@@ -441,11 +403,7 @@ grl_media_video_get_url_data_nth (GrlMediaVideo *video,
                                   gint *width,
                                   gint *height)
 {
-  GrlRelatedKeys *relkeys;
-
-  g_return_val_if_fail (GRL_IS_MEDIA_VIDEO (video), NULL);
-
-  relkeys =
+  GrlRelatedKeys *relkeys =
     grl_data_get_related_keys (GRL_DATA (video), GRL_METADATA_KEY_URL, index);
 
   if (!relkeys) {
@@ -537,11 +495,7 @@ const gchar *
 grl_media_video_get_performer_nth (GrlMediaVideo *video,
                                    guint index)
 {
-  GrlRelatedKeys *relkeys;
-
-  g_return_val_if_fail (GRL_IS_MEDIA_VIDEO (video), NULL);
-
-  relkeys =
+  GrlRelatedKeys *const relkeys =
     grl_data_get_related_keys (GRL_DATA (video),
                                GRL_METADATA_KEY_PERFORMER,
                                index);
@@ -618,11 +572,7 @@ const gchar *
 grl_media_video_get_producer_nth (GrlMediaVideo *video,
                                   guint index)
 {
-  GrlRelatedKeys *relkeys;
-
-  g_return_val_if_fail (GRL_IS_MEDIA_VIDEO (video), NULL);
-
-  relkeys =
+  GrlRelatedKeys *const relkeys =
     grl_data_get_related_keys (GRL_DATA (video),
                                GRL_METADATA_KEY_PRODUCER,
                                index);
@@ -699,11 +649,7 @@ const gchar *
 grl_media_video_get_director_nth (GrlMediaVideo *video,
                                   guint index)
 {
-  GrlRelatedKeys *relkeys;
-
-  g_return_val_if_fail (GRL_IS_MEDIA_VIDEO (video), NULL);
-
-  relkeys =
+  GrlRelatedKeys *const relkeys =
     grl_data_get_related_keys (GRL_DATA (video),
                                GRL_METADATA_KEY_DIRECTOR,
                                index);

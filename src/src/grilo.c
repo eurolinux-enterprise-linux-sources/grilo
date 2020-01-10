@@ -31,9 +31,6 @@
  * The Grilo library should be initialized with grl_init() before it can be used.
  * You should pass pointers to the main argc and argv variables so that Grilo can
  * process its own command line options.
- *
- * After using it, in order to close cleanly all the resources opened either by
- * the core library or the sources, call grl_deinit().
  */
 
 #include "grilo.h"
@@ -70,12 +67,30 @@ get_default_plugin_dir (void)
 #endif
 }
 
-static gboolean
-pre_parse_hook_cb (GOptionContext  *context,
-                   GOptionGroup    *group,
-                   gpointer         data,
-                   GError         **error)
+/**
+ * grl_init:
+ * @argc: (inout) (allow-none): number of input arguments, length of @argv
+ * @argv: (inout) (element-type utf8) (array length=argc) (allow-none): list of arguments
+ *
+ * Initializes the Grilo library
+ *
+ * Since: 0.1.6
+ */
+void
+grl_init (gint *argc,
+          gchar **argv[])
 {
+  GOptionContext *ctx;
+  GOptionGroup *group;
+  GrlRegistry *registry;
+  gchar **split_element;
+  gchar **split_list;
+
+  if (grl_initialized) {
+    GRL_DEBUG ("already initialized grl");
+    return;
+  }
+
 #if !GLIB_CHECK_VERSION(2,35,0)
   g_type_init ();
 #endif
@@ -87,18 +102,13 @@ pre_parse_hook_cb (GOptionContext  *context,
   /* Initialize operations */
   grl_operation_init ();
 
-  return TRUE;
-}
-
-static gboolean
-post_parse_hook_cb (GOptionContext  *context,
-                    GOptionGroup    *group,
-                    gpointer         data,
-                    GError         **error)
-{
-  GrlRegistry *registry;
-  gchar **split_element;
-  gchar **split_list;
+  /* Check options */
+  ctx = g_option_context_new ("- Grilo initialization");
+  g_option_context_set_ignore_unknown_options (ctx, TRUE);
+  group = grl_init_get_option_group ();
+  g_option_context_add_group (ctx, group);
+  g_option_context_parse (ctx, argc, argv, NULL);
+  g_option_context_free (ctx);
 
   /* Initialize GModule */
   if (!g_module_supported ()) {
@@ -145,67 +155,10 @@ post_parse_hook_cb (GOptionContext  *context,
   }
 
   grl_initialized = TRUE;
-
-  return TRUE;
 }
 
 /**
- * grl_init:
- * @argc: (inout) (allow-none): number of input arguments, length of @argv
- * @argv: (inout) (element-type utf8) (array length=argc) (allow-none) (transfer none): list of arguments
- *
- * Initializes the Grilo library
- *
- * Since: 0.1.6
- */
-void
-grl_init (gint *argc,
-          gchar **argv[])
-{
-  GOptionContext *ctx;
-  GOptionGroup *group;
-
-  if (grl_initialized) {
-    GRL_DEBUG ("already initialized grl");
-    return;
-  }
-
-  /* Check options */
-  ctx = g_option_context_new ("- Grilo initialization");
-  g_option_context_set_ignore_unknown_options (ctx, TRUE);
-  group = grl_init_get_option_group ();
-  g_option_context_add_group (ctx, group);
-  g_option_context_parse (ctx, argc, argv, NULL);
-  g_option_context_free (ctx);
-}
-
-/**
- * grl_deinit:
- *
- * Deinitializes the Grilo library.
- *
- * Call this function after finalizing using Grilo, in order to free and clean
- * up all the resources created.
- *
- * Since: 0.2.8
- */
-void
-grl_deinit (void)
-{
-  GrlRegistry *registry;
-
-  if (!grl_initialized) {
-    GRL_WARNING ("Grilo has not been initialized");
-    return;
-  }
-
-  registry = grl_registry_get_default ();
-  grl_registry_shutdown (registry);
-  grl_initialized = FALSE;
-}
-
-/**
- * grl_init_get_option_group:
+ * grl_init_get_option_group: (skip)
  *
  * Returns a #GOptionGroup with Grilo's argument specifications.
  *
@@ -240,7 +193,6 @@ grl_init_get_option_group (void)
                               NULL,
                               NULL);
   g_option_group_add_entries (group, grl_args);
-  g_option_group_set_parse_hooks (group, pre_parse_hook_cb, post_parse_hook_cb);
 
   return group;
 }

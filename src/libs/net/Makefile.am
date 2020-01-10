@@ -11,9 +11,10 @@ lib_LTLIBRARIES = libgrlnet-@GRL_MAJORMINOR@.la
 libgrlnet_@GRL_MAJORMINOR@_la_DEPENDENCIES =	\
 	$(top_builddir)/src/lib@GRL_NAME@.la
 
-libgrlnet_@GRL_MAJORMINOR@_la_SOURCES =   \
-	grl-net-mock.c                         \
-	grl-net-wc.c
+libgrlnet_@GRL_MAJORMINOR@_la_SOURCES = \
+	grl-net-private.c		\
+	grl-net-wc.c		\
+	grl-net-mock.c
 
 libgrlnet_@GRL_MAJORMINOR@_la_CFLAGS =	\
 	-I $(top_srcdir)/src		\
@@ -21,6 +22,16 @@ libgrlnet_@GRL_MAJORMINOR@_la_CFLAGS =	\
 	-DLOCALEDIR=\"$(localedir)\" \
 	$(DEPS_CFLAGS)			\
 	$(NET_CFLAGS)
+
+if BUILD_GRILO_NET_WITH_CACHE
+libgrlnet_@GRL_MAJORMINOR@_la_CFLAGS += \
+	-DLIBSOUP_WITH_CACHE
+libgrlnet_@GRL_MAJORMINOR@_la_SOURCES += \
+	grl-net-soup-unstable.c
+else
+libgrlnet_@GRL_MAJORMINOR@_la_SOURCES += \
+	grl-net-soup-stable.c
+endif
 
 if BUILD_GRILO_NET_WITH_DEPRECATED_REQUESTER
 libgrlnet_@GRL_MAJORMINOR@_la_CFLAGS += \
@@ -44,9 +55,17 @@ libgrlnet_@GRL_MAJORMINOR@include_HEADERS =	\
 	grl-net.h
 
 noinst_HEADERS = 		\
+	grl-net-private.h	\
 	grl-net-mock-private.h
 
-CLEANFILES = *.gir
+MAINTAINERCLEANFILES =	\
+	*.in		\
+	*.gir		\
+	*~
+
+DISTCLEANFILES = $(MAINTAINERCLEANFILES)
+
+CLEANFILES =
 
 # introspection support
 if HAVE_INTROSPECTION
@@ -62,13 +81,15 @@ introspection_sources =	\
 	$(gir_sources)
 
 GrlNet-@GRL_MAJORMINOR@.gir: libgrlnet-@GRL_MAJORMINOR@.la
-GrlNet_@GRL_MAJORMINOR_NORM@_gir_INCLUDES = GObject-2.0 Gio-2.0 Soup-2.4
+GrlNet_@GRL_MAJORMINOR_NORM@_gir_INCLUDES = GObject-2.0 Soup-2.4
+if BUILD_GRILO_NET_WITH_CACHE
+GrlNet_@GRL_MAJORMINOR_NORM@_gir_INCLUDES += Gio-2.0
+endif
 GrlNet_@GRL_MAJORMINOR_NORM@_gir_CFLAGS = -I $(top_srcdir)/src \
 	-I $(top_srcdir)/src/data -I $(top_srcdir)/libs
 GrlNet_@GRL_MAJORMINOR_NORM@_gir_LIBS = libgrlnet-@GRL_MAJORMINOR@.la \
 	$(top_builddir)/src/lib@GRL_NAME@.la
 GrlNet_@GRL_MAJORMINOR_NORM@_gir_FILES = $(introspection_sources)
-GrlNet_@GRL_MAJORMINOR_NORM@_gir_SCANNERFLAGS = --c-include="net/grl-net.h"
 INTROSPECTION_GIRS += GrlNet-@GRL_MAJORMINOR@.gir
 
 girdir = @INTROSPECTION_GIRDIR@
@@ -79,5 +100,3 @@ typelib_DATA = $(INTROSPECTION_GIRS:.gir=.typelib)
 
 CLEANFILES += $(dist_gir_DATA) $(typelib_DATA)
 endif
-
--include $(top_srcdir)/git.mk

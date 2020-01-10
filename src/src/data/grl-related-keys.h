@@ -115,7 +115,7 @@ void grl_related_keys_set_float (GrlRelatedKeys *relkeys,
 
 void grl_related_keys_set_boolean (GrlRelatedKeys *relkeys,
                                    GrlKeyID key,
-                                   gboolean booleanvalue);
+                                   gboolean boolvalue);
 
 void grl_related_keys_set_binary(GrlRelatedKeys *relkeys,
                                  GrlKeyID key,
@@ -125,10 +125,6 @@ void grl_related_keys_set_binary(GrlRelatedKeys *relkeys,
 void grl_related_keys_set_boxed (GrlRelatedKeys *relkeys,
                                  GrlKeyID key,
                                  gconstpointer boxed);
-
-void grl_related_keys_set_int64 (GrlRelatedKeys *relkeys,
-                                 GrlKeyID key,
-                                 gint64 intvalue);
 
 const GValue *grl_related_keys_get (GrlRelatedKeys *relkeys,
                                     GrlKeyID key);
@@ -151,9 +147,6 @@ const guint8 *grl_related_keys_get_binary(GrlRelatedKeys *relkeys,
 
 gconstpointer grl_related_keys_get_boxed (GrlRelatedKeys *relkeys,
                                           GrlKeyID key);
-
-gint64 grl_related_keys_get_int64 (GrlRelatedKeys *relkeys,
-                                   GrlKeyID key);
 
 void grl_related_keys_remove (GrlRelatedKeys *relkeys,
                               GrlKeyID key);

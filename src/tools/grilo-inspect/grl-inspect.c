@@ -281,7 +281,7 @@ print_version (void)
 {
   g_print ("grl-inspect-" GRL_MAJORMINOR " version " VERSION "\n");
   g_print ("Grilo " VERSION "\n");
-  g_print ("https://wiki.gnome.org/Projects/Grilo\n");
+  g_print ("http://live.gnome.org/Grilo\n");
 }
 
 static void
@@ -293,7 +293,6 @@ introspect_source (const gchar *source_id)
   GrlPlugin *plugin;
   GrlSource *source;
   GrlSupportedOps supported_ops;
-  const gchar **tags;
   const gchar *value;
   gchar *key;
 
@@ -330,15 +329,6 @@ introspect_source (const gchar *source_id)
     g_print ("  %-20s %d\n", "Rank:",
              grl_source_get_rank (source));
 
-    /* Print tags */
-    tags = grl_source_get_tags (source);
-    if (tags) {
-      g_print ("  %-20s %s", "Tags:", *tags);
-      while (*(++tags)) {
-        g_print (", %s", *tags);
-      }
-      g_print ("\n");
-    }
     g_print ("\n");
 
    /* Print supported media */
@@ -384,10 +374,6 @@ introspect_source (const gchar *source_id)
     if (supported_ops & GRL_OP_REMOVE) {
       g_print ("  grl_media_source_remove():\t\tRemove Media\n");
     }
-    if (supported_ops & GRL_OP_MEDIA_FROM_URI) {
-      g_print ("  grl_media_source_test_media_from_uri():\tTest if it can get a Media from an URI\n");
-      g_print ("  grl_media_source_get_media_from_uri():\tGet a Media from an URI\n");
-    }
     g_print ("\n");
 
     /* Print supported signals */
@@ -401,9 +387,6 @@ introspect_source (const gchar *source_id)
     g_print ("Supported keys:\n");
     g_print ("  Readable Keys:\t");
     print_keys (grl_source_supported_keys (source));
-    g_print ("\n");
-    g_print ("  Slow Keys:\t\t");
-    print_keys (grl_source_slow_keys (source));
     g_print ("\n");
     g_print ("  Writable Keys:\t");
     print_keys (grl_source_writable_keys (source));
@@ -529,8 +512,5 @@ main (int argc, char *argv[])
   g_timeout_add_seconds ((guint) delay, run, NULL);
 
   g_main_loop_run (mainloop);
-
-  grl_deinit ();
-
   return 0;
 }

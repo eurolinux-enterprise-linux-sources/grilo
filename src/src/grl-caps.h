@@ -44,12 +44,6 @@ typedef struct {
   gpointer _grl_reserved[GRL_PADDING_SMALL];
 } GrlCaps;
 
-/**
- * GrlCapsClass:
- * @parent: the parent class structure
- *
- * Grilo Capabilities class.
- */
 typedef struct {
   GObjectClass parent;
 
@@ -69,11 +63,10 @@ typedef struct {
 
 /**
  * GrlTypeFilter:
- * @GRL_TYPE_FILTER_NONE: allow no content (only #GrlMediaBox)
+ * @GRL_TYPE_FILTER_NONE: no type filtering
  * @GRL_TYPE_FILTER_AUDIO: allow audio content
  * @GRL_TYPE_FILTER_VIDEO: allow video content
  * @GRL_TYPE_FILTER_IMAGE: allow image content
- * @GRL_TYPE_FILTER_ALL: allow any type of content
  *
  * Type of media to allow.
  **/
